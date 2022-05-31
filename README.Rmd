@@ -13,38 +13,178 @@ knitr::opts_chunk$set(
 )
 ```
 
-# epi.meta.analysis
+# Epidemiological Studies: Meta Analysis
 
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of epi.meta.analysis is to ...
+The goal of epi.meta.analysis is to:
 
-## Installation
+* Explore the current epidemiological research studies and figure out the PM2.5 exposure range covered.
+* Identify and plot the locations of these studies on a map to identify locations where no/very few cohort studies have been performed.
+* Better understand the relationship between PM2.5 and Mortality.
 
-You can install the development version of epi.meta.analysis from [GitHub](https://github.com/) with:
 
-``` r
-# install.packages("devtools")
-# devtools::install_github("aqli-epic/epi.meta.analysis")
+
+```{r load_libraries, include=FALSE}
+library(readr)
+library(dplyr)
+library(stringr)
+library(magrittr)
+library(ggplot2)
+library(readr)
+library(tidytext)
+library(tidyr)
+library(tidyverse)
+library(ggthemes)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
 ```
 
-## Example
 
-This is a basic example which shows you how to solve a common problem:
+# Studying the distribution of mean PM2.5
 
-```{r example}
-##library(epi.meta.analysis)
-## basic example code
+** Note: All data that is used to generate the graphs below can be found in the `data-raw` sub-directory, which is present at the root of the `epi.meta.analysis` directory.
+
+```{r prepare_data, include=FALSE}
+#> read in datasets 
+
+# epi studies analysis raw sheet
+epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "PM2.5MortalityAnalysisDataset")
+
+# AQLI color file
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv") 
+
+
+#> change default columns types
+epi$cohort_size <- as.numeric(epi$cohort_size)
+epi$study_start_year<- as.numeric(epi$study_start_year)
+epi$study_end_year <- as.numeric(epi$study_end_year)
+epi$pm2.5_exposure_ll <- as.numeric(epi$pm2.5_exposure_ll)
+epi$pm2.5_exposure_ul <- as.numeric(epi$pm2.5_exposure_ul)
+epi$mean_pm2.5 <- as.numeric(epi$mean_pm2.5)
+epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
+epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
+epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
+
+#> add useful columns
+
+epi <- epi %>%
+  mutate(study_duration = (study_end_year - study_start_year) + 1)
 ```
 
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this. You could also use GitHub Actions to re-render `README.Rmd` every time you push. An example workflow can be found here: <https://github.com/r-lib/actions/tree/v1/examples>.
+##  Plot 1: PM2.5 distributions of the lower limits and upper limits of exposure range
 
-You can also embed plots, for example:
+```{r plot1_pm2.5_expo_ul_ll, echo=FALSE, message=FALSE, warning=FALSE}
+#> exposure distribution density plot (PM2.5 LL and PM2.5 UL) using the wide dataset
 
-```{r pressure, echo = FALSE}
-plot(pressure)
+# (1) exposure distribution: create long dataset and then plot it
+epi %>% 
+  pivot_longer(cols = contains("pm2.5_exposure"), names_to =  "exposure_type", values_to = "exposure_value") %>%
+  select(exposure_type, exposure_value) %>%
+  filter(!is.na(exposure_value)) %>%
+  ggplot() +
+  geom_density(mapping = aes(x = exposure_value, fill = exposure_type), alpha = 0.6) +
+  scale_x_continuous(breaks = seq(0, 250, 10)) + 
+  labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
+  theme_tufte()
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+* From **Plot 1**, it looks like most of the studies are present in concentration ranges that are less than 50 µg/m³. According to AQLIs latest estimates, 12.6 percent (~962 million people) of the world population live in areas where PM2.5 pollution concentration is greater than 50 µg/m³.  
+
+
+## Plot 2: mean PM2.5 distribution (country wise)
+```{r plot2_mean_pm2.5_country_wise, echo=FALSE}
+#> mean PM2.5 distribution segregated by country
+
+# (2) mean pm2.5 distribution segregated by country
+epi %>% 
+  filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
+  ggplot() +
+  geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.65, color = "black") +
+  scale_x_continuous(breaks = seq(1, 100, 2))
+```
+
+## Plot 3: Choropleth map mapping the count of total number of pm2.5-mortality studies conducted arounf the world.
+```{r plot3_choropleth_study_count, echo=FALSE}
+
+#> (3) Choropleth world map mapping the count of total number of studies
+
+# generate summary dataset for total number of studies conducted in a given country
+epi_country_count <- epi %>%
+  select(country) %>%
+  count(country) %>%
+  filter(country != "NA") 
+
+epi_country_count$country <- str_replace(epi_country_count$country, "USA", "United States")
+
+
+# plot choropleth map
+world <- ne_countries(scale = "medium", returnclass = "sf")
+world %>%
+  left_join(epi_country_count, by = c("name_long" = "country")) %>%
+ggplot() + 
+  geom_sf(mapping = aes(fill = n)) +
+  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+
+```
+
+
+## Plot 4: Age distributions of lower limits and upper limits of age range
+```{r plot4_age_distribution_ll_ul, echo=FALSE}
+#> (4) age distribution density plot (LL and UL) using the wide dataset
+epi %>% 
+  pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
+  select(age_dist_type, age_value) %>%
+  filter(!is.na(age_value)) %>%
+  ggplot() +
+  geom_density(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.6) +
+  scale_x_continuous(breaks = seq(0, 90, 5)) + 
+  labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
+  theme_tufte()
+```
+
+# Plot 5: Distribution of Cohort Size
+```{r plot5_cohort_size_dist, echo=FALSE}
+#> (5) Cohort Size
+epi %>%
+  ggplot() +
+  geom_density(mapping = aes(x = log10(cohort_size))) +
+  theme_tufte()
+```
+
+
+# Plot 6: Distribution of Study Duration
+```{r plot6_study_duration_dist, echo=FALSE}
+#> (6) Study duration
+epi %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = study_duration), stat = "count") +
+  scale_x_continuous(breaks = seq(0, 40, 5)) +
+  theme_tufte()
+```
+
+
+# Plot7: AQLI data, pm2.5 distributions (country wise)
+```{r plot7_pm2.5_country_dist_aqli, echo=FALSE}
+
+
+#> (7) country level PM2.5 distributions
+country_name <- "United States"
+aqli_color %>%
+  filter(country == country_name) %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = pm2020), color = "white") + 
+  scale_x_continuous(breaks = seq(0, 120, 5)) + 
+  theme_tufte()
+
+
+
+
+
+
+
+```
+
