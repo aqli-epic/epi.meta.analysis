@@ -20,13 +20,13 @@ knitr::opts_chunk$set(
 
 The goal of epi.meta.analysis is to:
 
-* Explore the current epidemiological research studies and figure out the PM2.5 exposure range covered.
-* Identify and plot the locations of these studies on a map to identify locations where no/very few cohort studies have been performed.
-* Better understand the relationship between PM2.5 and Mortality.
+* Exhaustively Explore epidemiological research studies to figure out the regional (country wise) PM2.5 exposure range covered in these studies.
+* Identify and plot the locations of these studies on a map to identify locations where no/very few cohort studies have been undertaken.
+* Better understand the relationship between PM2.5 and Mortality/Life Expectancy.
 
 
 
-```{r load_libraries, include=FALSE}
+```{r load_libraries, message=FALSE, warning=FALSE, include=FALSE}
 library(readr)
 library(dplyr)
 library(stringr)
@@ -43,11 +43,11 @@ library(rnaturalearthdata)
 ```
 
 
-# Studying the distribution of mean PM2.5
+# Analysis and Plots 
 
-** Note: All data that is used to generate the graphs below can be found in the `data-raw` sub-directory, which is present at the root of the `epi.meta.analysis` directory.
+* Note: All data that is used to generate the graphs below can be found in the `data-raw` sub-directory, which is present at the root of the `epi.meta.analysis` directory.
 
-```{r prepare_data, include=FALSE}
+```{r prepare_data, message=FALSE, warning=FALSE, include=FALSE}
 #> read in datasets 
 
 # epi studies analysis raw sheet
@@ -75,42 +75,69 @@ epi <- epi %>%
 ```
 
 
-##  Plot 1: PM2.5 distributions of the lower limits and upper limits of exposure range
+##  PM2.5 distributions of the lower limits and upper limits of exposure range (Density and Histogram Plots)
 
-```{r plot1_pm2.5_expo_ul_ll, echo=FALSE, message=FALSE, warning=FALSE}
-#> exposure distribution density plot (PM2.5 LL and PM2.5 UL) using the wide dataset
+```{r pm2.5_expo_ul_ll, echo=FALSE, message=FALSE, warning=FALSE}
+#> exposure distribution density and histogram plots (PM2.5 LL and PM2.5 UL)
 
-# (1) exposure distribution: create long dataset and then plot it
-epi %>% 
+# create long dataset
+epi_long <- epi %>% 
   pivot_longer(cols = contains("pm2.5_exposure"), names_to =  "exposure_type", values_to = "exposure_value") %>%
   select(exposure_type, exposure_value) %>%
-  filter(!is.na(exposure_value)) %>%
+  filter(!is.na(exposure_value)) 
+
+# density plot
+epi_long %>%
   ggplot() +
-  geom_density(mapping = aes(x = exposure_value, fill = exposure_type), alpha = 0.6) +
+  geom_density(mapping = aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
   scale_x_continuous(breaks = seq(0, 250, 10)) + 
   labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
   theme_tufte()
+
+# histogram plot
+epi_long %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4) +
+  scale_x_continuous(breaks = seq(0, 250, 10)) + 
+  labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
+  theme_tufte()
+
+
+
 ```
 
-* From **Plot 1**, it looks like most of the studies are present in concentration ranges that are less than 50 µg/m³. According to AQLIs latest estimates, 12.6 percent (~962 million people) of the world population live in areas where PM2.5 pollution concentration is greater than 50 µg/m³.  
+* From **Plot 1**, it looks like most of the studies are present in concentration ranges that are less than 50 µg/m³. According to AQLIs latest estimates, 12.6 percent (~962 million people) of the world population live in areas where PM2.5 pollution concentration is greater than 50 µg/m³. 
 
 
-## Plot 2: mean PM2.5 distribution (country wise)
-```{r plot2_mean_pm2.5_country_wise, echo=FALSE}
+## Country Wise Mean PM2.5 distribution (Density Plot and Historgram)
+```{r mean_pm2.5_country_wise, echo=FALSE, message=FALSE, warning=FALSE}
 #> mean PM2.5 distribution segregated by country
 
-# (2) mean pm2.5 distribution segregated by country
+# (2) mean pm2.5 distribution segregated by country (density plot)
 epi %>% 
   filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
   ggplot() +
-  geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.65, color = "black") +
-  scale_x_continuous(breaks = seq(1, 100, 2))
+  geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
+  scale_x_continuous(breaks = seq(1, 100, 2)) +
+  labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
+  theme_tufte()
+
+# (3) mean pm2.5 distribution segregated by country (histogram)
+epi %>% 
+  filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "white", position = "identity") +
+  scale_x_continuous(breaks = seq(1, 100, 2)) + 
+  labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
+  theme_tufte()
+  
+
 ```
 
-## Plot 3: Choropleth map mapping the count of total number of pm2.5-mortality studies conducted arounf the world.
-```{r plot3_choropleth_study_count, echo=FALSE}
+## Choropleth world map: mapping the total number of epidemiological studies (specifically those that are trying to better understand the relationship between PM2.5 and Mortality/Life Expectancy).
+```{r choropleth_study_count, echo=FALSE, message=FALSE, warning=FALSE}
 
-#> (3) Choropleth world map mapping the count of total number of studies
+#> (4) Choropleth world map mapping the count of total number of studies
 
 # generate summary dataset for total number of studies conducted in a given country
 epi_country_count <- epi %>%
@@ -127,58 +154,118 @@ world %>%
   left_join(epi_country_count, by = c("name_long" = "country")) %>%
 ggplot() + 
   geom_sf(mapping = aes(fill = n)) +
-  scale_fill_viridis_c(option = "plasma", trans = "sqrt")
+  scale_fill_distiller(name = "Number of Studies",  palette = "OrRd", trans = "reverse") +
+  theme_tufte()
 
 ```
 
-
-## Plot 4: Age distributions of lower limits and upper limits of age range
-```{r plot4_age_distribution_ll_ul, echo=FALSE}
-#> (4) age distribution density plot (LL and UL) using the wide dataset
+## Age distributions of lower limits and upper limits of age range (Density and Histogram plots)
+```{r plot4_age_distribution_ll_ul, echo=FALSE, message=FALSE, warning=FALSE}
+#> (5) age distribution plot (LL and UL) using the long dataset (density plot)
 epi %>% 
   pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
   select(age_dist_type, age_value) %>%
   filter(!is.na(age_value)) %>%
   ggplot() +
-  geom_density(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.6) +
+  geom_density(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.6, color = "black") +
   scale_x_continuous(breaks = seq(0, 90, 5)) + 
+  labs(x = "Age") +
+  theme_tufte()
+
+#> (6) age distribution plot (LL and UL) using the long dataset (histogram plot)
+epi %>% 
+  pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
+  select(age_dist_type, age_value) %>%
+  filter(!is.na(age_value)) %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.5, position = "identity", color = "white") +
+  scale_x_continuous(breaks = seq(0, 90, 5)) + 
+  scale_y_continuous(breaks = seq(0, 15, 2)) +
+  labs(x = "Age") +
+  theme_tufte()
+
+```
+
+## Country wise distribution of Cohort Sizes (Density and Histogram plots)
+```{r plot5_cohort_size_dist_country_wise, echo=FALSE, message=FALSE, warning=FALSE}
+
+#> (7) Country Wise Cohort Size density plot
+epi %>%
+  ggplot() +
+  geom_density(mapping = aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
+  theme_tufte()
+
+#> (8) Country wise Cohort Size histogram plot
+epi %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = log10(cohort_size), fill = country), alpha = 0.5, position = "identity") +
+  theme_tufte()
+
+```
+
+
+## Country wise Distribution of Study Duration (Density and Histogram Plots)
+```{r study_duration_dist_country_wise, echo=FALSE, message=FALSE, warning=FALSE}
+
+#> (9) Country wise Study duration density plot
+epi %>%
+  ggplot() +
+  geom_density(mapping = aes(x = study_duration, fill = country, alpha = 0.5)) +
+  scale_x_continuous(breaks = seq(0, 40, 5)) +
+  theme_tufte()
+
+#> (10) Country Wise Study Duration histogram
+
+epi %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = study_duration, fill = country, alpha = 0.5), position = "identity", alpha = 0.5) +
+  scale_x_continuous(breaks = seq(0, 40, 5)) +
+  theme_tufte()
+
+```
+
+
+## AQLI data, top 10 most polluted countries: PM2.5 distributions Histograms and Summary Table
+```{r pm2.5_country_dist_aqli_plot, echo=FALSE, message=FALSE, warning=FALSE}
+# AQLI top 20 most polluted countries
+n <- 10
+
+top_10_countries_most_polluted <- aqli_color %>%
+  group_by(country) %>%
+  mutate(pop_weights = population/sum(population, na.rm = TRUE), 
+         pm2020_pop_weighted = pm2020*pop_weights) %>%
+  summarise(avg_pm2.5_2020 = sum(pm2020_pop_weighted)) %>%
+  slice_max(avg_pm2.5_2020, n = n) 
+
+top_10_countries_most_polluted_names_vec <- top_10_countries_most_polluted %>%
+  select(country) %>%
+  unlist() %>%
+  as.vector()
+
+
+#> (11) Top 10 most polluted countries: PM2.5 distributions
+aqli_color %>%
+  filter(country %in% top_10_countries_most_polluted_names_vec) %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = pm2020), color = "white") + 
+  scale_x_continuous(breaks = seq(0, 120, 20)) + 
+  facet_wrap(~country) +
   labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
   theme_tufte()
 ```
 
-# Plot 5: Distribution of Cohort Size
-```{r plot5_cohort_size_dist, echo=FALSE}
-#> (5) Cohort Size
-epi %>%
-  ggplot() +
-  geom_density(mapping = aes(x = log10(cohort_size))) +
-  theme_tufte()
-```
 
 
-# Plot 6: Distribution of Study Duration
-```{r plot6_study_duration_dist, echo=FALSE}
-#> (6) Study duration
-epi %>%
-  ggplot() +
-  geom_histogram(mapping = aes(x = study_duration), stat = "count") +
-  scale_x_continuous(breaks = seq(0, 40, 5)) +
-  theme_tufte()
-```
+### Summary Table
+
+```{r pm2.5_country_dist_aqli_table, echo=FALSE, message=FALSE, warning=FALSE}
+# Top 10 most polluted countries: PM2.5 distributions: Table
+  
+colnames(top_10_countries_most_polluted) <- c("Country" ,"Average PM2.5 2020 (µg/m³)")  
+  
+knitr::kable(top_10_countries_most_polluted)  
 
 
-# Plot7: AQLI data, pm2.5 distributions (country wise)
-```{r plot7_pm2.5_country_dist_aqli, echo=FALSE}
-
-
-#> (7) country level PM2.5 distributions
-country_name <- "United States"
-aqli_color %>%
-  filter(country == country_name) %>%
-  ggplot() +
-  geom_histogram(mapping = aes(x = pm2020), color = "white") + 
-  scale_x_continuous(breaks = seq(0, 120, 5)) + 
-  theme_tufte()
 
 
 

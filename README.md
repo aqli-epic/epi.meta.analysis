@@ -8,22 +8,24 @@
 
 The goal of epi.meta.analysis is to:
 
--   Explore the current epidemiological research studies and figure out
-    the PM2.5 exposure range covered.
+-   Exhaustively Explore epidemiological research studies to figure out
+    the regional (country wise) PM2.5 exposure range covered in these
+    studies.
 -   Identify and plot the locations of these studies on a map to
     identify locations where no/very few cohort studies have been
-    performed.
--   Better understand the relationship between PM2.5 and Mortality.
+    undertaken.
+-   Better understand the relationship between PM2.5 and Mortality/Life
+    Expectancy.
 
-# Studying the distribution of mean PM2.5
+# Analysis and Plots
 
-\*\* Note: All data that is used to generate the graphs below can be
-found in the `data-raw` sub-directory, which is present at the root of
-the `epi.meta.analysis` directory.
+-   Note: All data that is used to generate the graphs below can be
+    found in the `data-raw` sub-directory, which is present at the root
+    of the `epi.meta.analysis` directory.
 
-## Plot 1: PM2.5 distributions of the lower limits and upper limits of exposure range
+## PM2.5 distributions of the lower limits and upper limits of exposure range (Density and Histogram Plots)
 
-<img src="man/figures/README-plot1_pm2.5_expo_ul_ll-1.png" width="100%" />
+<img src="man/figures/README-pm2.5_expo_ul_ll-1.png" width="100%" /><img src="man/figures/README-pm2.5_expo_ul_ll-2.png" width="100%" />
 
 -   From **Plot 1**, it looks like most of the studies are present in
     concentration ranges that are less than 50 µg/m³. According to AQLIs
@@ -31,61 +33,41 @@ the `epi.meta.analysis` directory.
     population live in areas where PM2.5 pollution concentration is
     greater than 50 µg/m³.
 
-## Plot 2: mean PM2.5 distribution (country wise)
+## Country Wise Mean PM2.5 distribution (Density Plot and Historgram)
 
-    #> Warning: Groups with fewer than two data points have been dropped.
-    #> Groups with fewer than two data points have been dropped.
-    #> Groups with fewer than two data points have been dropped.
-    #> Groups with fewer than two data points have been dropped.
-    #> Groups with fewer than two data points have been dropped.
-    #> Groups with fewer than two data points have been dropped.
-    #> Groups with fewer than two data points have been dropped.
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+<img src="man/figures/README-mean_pm2.5_country_wise-1.png" width="100%" /><img src="man/figures/README-mean_pm2.5_country_wise-2.png" width="100%" />
 
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+## Choropleth world map: mapping the total number of epidemiological studies (specifically those that are trying to better understand the relationship between PM2.5 and Mortality/Life Expectancy).
 
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+<img src="man/figures/README-choropleth_study_count-1.png" width="100%" />
 
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+## Age distributions of lower limits and upper limits of age range (Density and Histogram plots)
 
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+<img src="man/figures/README-plot4_age_distribution_ll_ul-1.png" width="100%" /><img src="man/figures/README-plot4_age_distribution_ll_ul-2.png" width="100%" />
 
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+## Country wise distribution of Cohort Sizes (Density and Histogram plots)
 
-    #> Warning in max(ids, na.rm = TRUE): no non-missing arguments to max; returning
-    #> -Inf
+<img src="man/figures/README-plot5_cohort_size_dist_country_wise-1.png" width="100%" /><img src="man/figures/README-plot5_cohort_size_dist_country_wise-2.png" width="100%" />
 
-<img src="man/figures/README-plot2_mean_pm2.5_country_wise-1.png" width="100%" />
+## Country wise Distribution of Study Duration (Density and Histogram Plots)
 
-## Plot 3: Choropleth map mapping the count of total number of pm2.5-mortality studies conducted arounf the world.
+<img src="man/figures/README-study_duration_dist_country_wise-1.png" width="100%" /><img src="man/figures/README-study_duration_dist_country_wise-2.png" width="100%" />
 
-<img src="man/figures/README-plot3_choropleth_study_count-1.png" width="100%" />
+## AQLI data, top 10 most polluted countries: PM2.5 distributions Histograms and Summary Table
 
-## Plot 4: Age distributions of lower limits and upper limits of age range
+<img src="man/figures/README-pm2.5_country_dist_aqli_plot-1.png" width="100%" />
 
-<img src="man/figures/README-plot4_age_distribution_ll_ul-1.png" width="100%" />
+### Summary Table
 
-# Plot 5: Distribution of Cohort Size
-
-    #> Warning: Removed 16 rows containing non-finite values (stat_density).
-
-<img src="man/figures/README-plot5_cohort_size_dist-1.png" width="100%" />
-
-# Plot 6: Distribution of Study Duration
-
-    #> Warning: Ignoring unknown parameters: binwidth, bins, pad
-    #> Warning: Removed 13 rows containing non-finite values (stat_count).
-
-<img src="man/figures/README-plot6_study_duration_dist-1.png" width="100%" />
-
-# Plot7: AQLI data, pm2.5 distributions (country wise)
-
-    #> `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-
-<img src="man/figures/README-plot7_pm2.5_country_dist_aqli-1.png" width="100%" />
+| Country                          | Average PM2.5 2020 (µg/m³) |
+|:---------------------------------|---------------------------:|
+| Bangladesh                       |                   75.75863 |
+| India                            |                   55.79855 |
+| Nepal                            |                   47.12727 |
+| Pakistan                         |                   44.17125 |
+| Democratic Republic of the Congo |                   34.19913 |
+| Rwanda                           |                   32.95480 |
+| Myanmar                          |                   32.43946 |
+| Burundi                          |                   31.76077 |
+| China                            |                   31.63255 |
+| Republic of Congo                |                   31.62412 |
