@@ -108,7 +108,7 @@ The purpose of this analysis is to understand the landscape of epidemiological r
 
 ## Why do epidemiological studies on air pollution and mortality matter?
 
-While global estimates of air pollution’s toll on public health vary, they all point in the same direction: air pollution poses one of the largest health risks on the planet to humans [[Paper1](https://www.pnas.org/doi/10.1073/pnas.1300018110), [Paper2](https://www.pnas.org/doi/full/10.1073/pnas.1616784114), [Paper3](https://pubs.acs.org/doi/pdf/10.1021/acs.estlett.8b00360), [Paper4](https://pubs.acs.org/doi/pdf/10.1021/acs.estlett.8b00360)]. Epidemiological studies on air pollution and mortality help us understand the burden of air pollution on human health at global, national and regional levels. According to [Vahlsing and Smith (2012)](https://pubs.acs.org/doi/pdf/10.1021/acs.estlett.8b00360), these sorts of studies can also help countries take policy action, pushing forward and shaping national-level ambient air quality standards.
+While global estimates of air pollution’s toll on public health vary, they all point in the same direction: air pollution poses one of the largest health risks on the planet to humans [[Paper1](https://www.pnas.org/doi/10.1073/pnas.1300018110), [Paper2](https://www.pnas.org/doi/full/10.1073/pnas.1616784114), [Paper3](https://pubs.acs.org/doi/pdf/10.1021/acs.estlett.8b00360), [Paper4](https://pubs.acs.org/doi/pdf/10.1021/acs.estlett.8b00360)]. Epidemiological studies on air pollution and mortality help us understand the burden of air pollution on human health at global, national and regional levels. According to [Vahlsing and Smith (2012)](https://link.springer.com/content/pdf/10.1007/s11869-010-0131-2.pdf), these sorts of studies can also help countries take policy action, pushing forward and shaping national-level ambient air quality standards.
 
 The burden of air pollution across the world is also not uniform. While `r percent_people_above_who` percent of the world population is out of compliance with the latest WHO annual PM~2.5~ guideline of `r who_pm2.5_guideline` µg/m³, there is huge variation in the quality of air one breathes. 
 
@@ -669,9 +669,7 @@ epi %>%
   geom_histogram(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.5, position = "identity", color = "white") +
   scale_x_continuous(breaks = seq(0, 90, 5)) + 
   scale_y_continuous(breaks = seq(0, 15, 2)) +
-  labs(x = "Age") +
-  facet_wrap(~age_dist_type) +
-  theme_tufte()
+  labs(x = "Age") 
 
 ```
 
@@ -703,7 +701,7 @@ epi %>%
   scale_x_continuous(breaks = seq(0, 40, 5)) +
   theme_tufte()
 
-#> (10) Country Wise Study Duration histogram
+#> Country Wise Study Duration histogram
 
 epi %>%
   ggplot() +
@@ -719,55 +717,6 @@ epi %>%
 
 ```
 
-
-#### AQLI data, top 10 most polluted countries: PM2.5 distributions Histograms and Summary Table
-```{r pm2.5_country_dist_aqli_plot, echo=FALSE, message=FALSE, warning=FALSE}
-# AQLI top 20 most polluted countries
-n <- 10
-
-top_10_countries_most_polluted <- aqli_color %>%
-  group_by(country) %>%
-  mutate(pop_weights = population/sum(population, na.rm = TRUE), 
-         pm2020_pop_weighted = pm2020*pop_weights) %>%
-  summarise(avg_pm2.5_2020 = sum(pm2020_pop_weighted)) %>%
-  slice_max(avg_pm2.5_2020, n = n) 
-
-top_10_countries_most_polluted_names_vec <- top_10_countries_most_polluted %>%
-  select(country) %>%
-  unlist() %>%
-  as.vector()
-
-
-#> Top 10 most polluted countries: PM2.5 distributions
-aqli_color %>%
-  filter(country %in% top_10_countries_most_polluted_names_vec) %>%
-  ggplot() +
-  geom_histogram(mapping = aes(x = pm2020), color = "white") + 
-  scale_x_continuous(breaks = seq(0, 120, 20)) + 
-  facet_wrap(~country) +
-  labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
-  theme_tufte()
-```
-
-
-#### Summary Table
-  
-```{r pm2.5_country_dist_aqli_table, echo=FALSE, message=FALSE, warning=FALSE}
-# Top 10 most polluted countries: PM2.5 distributions: Table
-  
-colnames(top_10_countries_most_polluted) <- c("Country" ,"Average PM2.5 2020 (µg/m³)")  
-  
-knitr::kable(top_10_countries_most_polluted)  
-
-
-
-
-
-
-
-
-
-```
 
 
 

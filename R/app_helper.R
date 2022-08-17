@@ -19,6 +19,7 @@ library(mapsf)
 library(colorspace)
 library(shiny)
 library(shinydashboard)
+library(DT)
 
 # global variables
 
@@ -29,9 +30,6 @@ epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Litera
 
 # AQLI color file
 aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
-
-# global operations
-`%notin%` <- Negate(`%in%`)
 
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
