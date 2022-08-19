@@ -31,6 +31,9 @@ who_pm2.5_guideline <- 5
 # AQLI color file
 # aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
 
+epi <- read_sheet("https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996", sheet = "[AnalysisDataset]PM2.5MortalityAnalysisDataset")
+
+
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
 epi$study_start_year<- as.numeric(epi$study_start_year)
