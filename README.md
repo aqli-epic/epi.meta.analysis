@@ -44,9 +44,10 @@ largest health risks on the planet to humans
 Epidemiological studies on air pollution and mortality help us
 understand the burden of air pollution on human health at global,
 national and regional levels. According to [Vahlsing and Smith
-(2012)](https://pubs.acs.org/doi/pdf/10.1021/acs.estlett.8b00360), these
-sorts of studies can also help countries take policy action, pushing
-forward and shaping national-level ambient air quality standards.
+(2012)](https://link.springer.com/content/pdf/10.1007/s11869-010-0131-2.pdf),
+these sorts of studies can also help countries take policy action,
+pushing forward and shaping national-level ambient air quality
+standards.
 
 The burden of air pollution across the world is also not uniform. While
 97.3 percent of the world population is out of compliance with the
@@ -125,14 +126,14 @@ variation in the quality of air one breathes.
 
  
 
--   In total 74 AQI epi studies were included in the final [analysis
+-   In total 108 AQI epi studies were included in the final [analysis
     dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
 
 -   12.7 percent of the world population, or 962.9 million people, live
     in areas where the annual average PM<sub>2.5</sub> pollution is
-    greater than 50 µg/m³. But, only 5 percent (3 studies) of the total
-    studies, have been performed in these highly polluted parts of the
-    world. These highly polluted areas are areas where the average
+    greater than 50 µg/m³. But, only 6.5 percent (4 studies) of the
+    total studies, have been performed in these highly polluted parts of
+    the world. These highly polluted areas are areas where the average
     PM<sub>2.5</sub> pollution is at least 10 times the WHO
     PM<sub>2.5</sub> safe guideline of 5 µg/m³.
 
@@ -142,7 +143,7 @@ variation in the quality of air one breathes.
     least 15 times the WHO safe guideline). In these most severely
     polluted parts of the world, 0 AQ epi studies have been performed .
 
--   Most of the AQ epi studies (81.7 percent of the total, or 49
+-   Most of the AQ epi studies (80.6 percent of the total, or 50
     studies) performed so far, are concentrated in areas where the
     average PM<sub>2.5</sub> concentration is in the 0-25 µg/m³ range.
     People living in these areas (59.2 percent of the world population)
@@ -157,11 +158,11 @@ variation in the quality of air one breathes.
 
 <img src="man/figures/README-geographic_dist_studies_calcs-1.png" width="100%" />
 
--   44 of the 74 (59.5 percent) studies were performed in the USA and
+-   48 of the 108 (44.4 percent) studies were performed in the USA and
     Canada.
 
--   56 of the 74 studies (75.7 percent) were performed in the USA,
-    Canada and Europe combined. Remaining 24.3 percent (18 studies) are
+-   61 of the 108 studies (56.5 percent) were performed in the USA,
+    Canada and Europe combined. Remaining 43.5 percent (47 studies) are
     scattered across China, Japan, Iran, Taiwan, Hong Kong, Brazil and
     India.
 
@@ -198,7 +199,7 @@ variation in the quality of air one breathes.
 
 ### Major takeaways
 
--   59.5 percent of the total number of studies are concentrated in the
+-   44.4 percent of the total number of studies are concentrated in the
     USA and Canada alone.
 
 -   In comparison, approximately 5.5 percent of the world population, or
@@ -313,22 +314,3 @@ comment in this GitHub repository.
 #### Country wise Distribution of Study Duration (Density and Histogram Plots)
 
 <img src="man/figures/README-study_duration_dist_country_wise-1.png" width="100%" /><img src="man/figures/README-study_duration_dist_country_wise-2.png" width="100%" />
-
-#### AQLI data, top 10 most polluted countries: PM2.5 distributions Histograms and Summary Table
-
-<img src="man/figures/README-pm2.5_country_dist_aqli_plot-1.png" width="100%" />
-
-#### Summary Table
-
-| Country                          | Average PM2.5 2020 (µg/m³) |
-|:---------------------------------|---------------------------:|
-| Bangladesh                       |                   75.75863 |
-| India                            |                   55.79855 |
-| Nepal                            |                   47.12727 |
-| Pakistan                         |                   44.17125 |
-| Democratic Republic of the Congo |                   34.19913 |
-| Rwanda                           |                   32.95480 |
-| Myanmar                          |                   32.43946 |
-| Burundi                          |                   31.76077 |
-| China                            |                   31.63255 |
-| Republic of Congo                |                   31.62412 |

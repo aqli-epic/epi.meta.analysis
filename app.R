@@ -359,9 +359,9 @@ server <- function(input, output) {
           ggplot2::geom_sf(mapping = ggplot2::aes(fill = avg_pm2.5_2020), color = "white") +
           colorspace::scale_fill_continuous_sequential(palette = "YlOrRd") +
           ggplot2::geom_sf(data = country_wise_centroids %>% dplyr::filter(num_studies != 0), mapping = ggplot2::aes(size = num_studies), col = "grey", ) +
-          ggplot2::theme(legend.position = "bottom") +
           ggplot2::scale_size_binned() +
-          ggplot2::scale_size(range = c(0, 8)) +
+          ggplot2::scale_size(range = c(1, 10)) +
+          ggplot2::theme(legend.position = "bottom") +
         ggthemes::theme_map()
         return(plotly::ggplotly(geographic_dist_graph))
 
@@ -372,9 +372,9 @@ server <- function(input, output) {
           ggplot2::geom_sf(mapping = ggplot2::aes(fill = avg_pm2.5_2020), color = "white") +
           colorspace::scale_fill_continuous_sequential(palette = "YlOrRd") +
           ggplot2::geom_sf(data = country_wise_centroids %>% dplyr::filter(num_studies != 0, country %in% input$countries_fig3), mapping = ggplot2::aes(size = num_studies), col = "grey") +
-          ggplot2::theme(legend.position = "bottom") +
           ggplot2::scale_size_binned() +
-          ggplot2::scale_size(range = c(0, 8)) +
+          ggplot2::scale_size(range = c(1, 10)) +
+          ggplot2::theme(legend.position = "bottom") +
           ggthemes::theme_map()
         return(plotly::ggplotly(geographic_dist_graph))
       }
@@ -498,7 +498,6 @@ output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
     epi_long %>%
       ggplot2::ggplot() +
       ggplot2::geom_histogram(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") +
-      ggplot2::scale_x_continuous(breaks = seq(0, 250, 10)) +
       ggplot2::labs(x = "PM2.5 concentration (in µg/m³)") +
       ggthemes::theme_hc() +
       ggplot2::theme(axis.line.y = element_line(color = "black"),
@@ -508,7 +507,6 @@ output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
     epi_long %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
-      ggplot2::scale_x_continuous(breaks = seq(0, 250, 10)) +
       ggplot2::labs(x = "PM2.5 concentration (in µg/m³)") +
       ggthemes::theme_hc() +
       ggplot2::theme(axis.line.y = element_line(color = "black"),

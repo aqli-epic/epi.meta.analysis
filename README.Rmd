@@ -210,7 +210,6 @@ pop_epi_studies_data <- aqli_color_grp_pm2.5_buckets %>%
 pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
   ggplot() +
   geom_col(mapping = aes(x = fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.7) +
-  scale_y_continuous(breaks = seq(0, 100, 10)) +
   scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) + 
   labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "") +
   theme_hc() +
@@ -223,7 +222,6 @@ mean_pm2.5_country_wise_graph <- epi %>%
   filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
   ggplot() +
   geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
-  scale_x_continuous(breaks = seq(1, 100, 2)) +
   labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
   theme_tufte()
 
@@ -408,7 +406,7 @@ geographic_dist_graph <- world_shp_epi_color %>%
   geom_sf(data = country_wise_centroids %>% filter(num_studies != 0), mapping = aes(size = num_studies), col = "grey", ) +
     theme(legend.position = "bottom") +
   scale_size_binned() +
-  scale_size(range = c(0, 8)) +
+  scale_size(range = c(1, 10)) +
   theme_map() +
   theme(legend.position = "bottom")
 
@@ -451,9 +449,7 @@ epi %>%
   group_by(publishing_year) %>%
   summarise(total_studies = n()) %>%
   ggplot() +
-  geom_line(mapping = aes(x = publishing_year, y = total_studies), lwd = 1.2, color = "cornflowerblue")+
-scale_x_continuous(breaks = seq(1980, 2030, 5)) +
-  scale_y_continuous(breaks = seq(0, 14, 2)) +
+  geom_line(mapping = aes(x = publishing_year, y = total_studies), lwd = 1.2, color = "cornflowerblue") +
   labs(x = "Year", y = "Total Number of Studies") +
   theme_minimal()
 
@@ -508,7 +504,6 @@ continent_wise_study_duration_graph <- epi_with_africa %>%
   geom_histogram(mapping = aes(x = study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
     labs(x = "Study Duration") +
   ggtitle("Epi Studies Duration Distribution (Continent Wise): Histogram") +
-  scale_x_continuous(breaks = seq(0, 40, 5)) +
   theme_hc() + 
   theme(legend.title = element_blank()) +
    facet_wrap(~fct_reorder(continent, order_continent), nrow = 1) +
@@ -629,16 +624,14 @@ epi_long <- epi %>%
 # density plot
 epi_long %>%
   ggplot() +
-  geom_density(mapping = aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
-  scale_x_continuous(breaks = seq(0, 250, 10)) + 
+  geom_density(mapping = aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") + 
   labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
   theme_tufte()
 
 # histogram plot
 epi_long %>%
   ggplot() +
-  geom_histogram(mapping = aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") +
-  scale_x_continuous(breaks = seq(0, 250, 10)) + 
+  geom_histogram(mapping = aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") + 
   labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
   theme_tufte()
 
@@ -655,8 +648,7 @@ epi %>%
   select(age_dist_type, age_value) %>%
   filter(!is.na(age_value)) %>%
   ggplot() +
-  geom_density(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.6, color = "black") +
-  scale_x_continuous(breaks = seq(0, 90, 5)) + 
+  geom_density(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.6, color = "black") + 
   labs(x = "Age") +
   theme_tufte()
 
@@ -667,8 +659,6 @@ epi %>%
   filter(!is.na(age_value)) %>%
   ggplot() +
   geom_histogram(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.5, position = "identity", color = "white") +
-  scale_x_continuous(breaks = seq(0, 90, 5)) + 
-  scale_y_continuous(breaks = seq(0, 15, 2)) +
   labs(x = "Age") 
 
 ```
@@ -698,7 +688,6 @@ epi %>%
 epi %>%
   ggplot() +
   geom_density(mapping = aes(x = study_duration, fill = country, alpha = 0.5)) +
-  scale_x_continuous(breaks = seq(0, 40, 5)) +
   theme_tufte()
 
 #> Country Wise Study Duration histogram
@@ -706,7 +695,6 @@ epi %>%
 epi %>%
   ggplot() +
   geom_histogram(mapping = aes(x = study_duration, fill = country, alpha = 0.5), position = "identity", alpha = 0.5, color = "white", binwidth = 1) +
-  scale_x_continuous(breaks = seq(0, 40, 5)) +
   theme_tufte() +
   facet_wrap(~country, nrow = 5) +
   theme(legend.position = "bottom")
