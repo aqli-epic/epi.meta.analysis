@@ -50,16 +50,16 @@ epi <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1AljEJh
 print("foo1")
 
 #> change default columns types
-epi$cohort_size <- as.numeric(epi$cohort_size)
-print("foo2")
-epi$study_start_year<- as.numeric(epi$study_start_year)
-epi$study_end_year <- as.numeric(epi$study_end_year)
-epi$pm2.5_exposure_ll <- as.numeric(epi$pm2.5_exposure_ll)
-epi$pm2.5_exposure_ul <- as.numeric(epi$pm2.5_exposure_ul)
-epi$mean_pm2.5 <- as.numeric(epi$mean_pm2.5)
-epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
-epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
-epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
+# epi$cohort_size <- as.numeric(epi$cohort_size)
+# print("foo2")
+# epi$study_start_year<- as.numeric(epi$study_start_year)
+# epi$study_end_year <- as.numeric(epi$study_end_year)
+# epi$pm2.5_exposure_ll <- as.numeric(epi$pm2.5_exposure_ll)
+# epi$pm2.5_exposure_ul <- as.numeric(epi$pm2.5_exposure_ul)
+# epi$mean_pm2.5 <- as.numeric(epi$mean_pm2.5)
+# epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
+# epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
+# epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
 #> add useful columns and filter out some studies (e.g. pooled studies, meta analysis)
 
