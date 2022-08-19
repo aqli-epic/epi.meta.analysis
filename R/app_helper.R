@@ -29,7 +29,7 @@ who_pm2.5_guideline <- 5
 epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
 
 # AQLI color file
-aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv") abc
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
 
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
