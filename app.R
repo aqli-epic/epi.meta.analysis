@@ -11,6 +11,9 @@ library(magrittr)
 library(DT)
 library(forcats)
 library(rnaturalearth)
+library(rnaturalearthdata)
+library(shinycssloaders)
+library(waiter)
 
 # setting global options
 options(shiny.maxRequestSize = 900*1024^2)
@@ -20,7 +23,7 @@ options(shiny.maxRequestSize = 900*1024^2)
 load("all.RData", .GlobalEnv)
 
 ui <- shinydashboard::dashboardPage(
-  skin = "black",
+   skin = "black",
  shinydashboard::dashboardHeader(
     title = "AQ Epi Studies"
   ),
@@ -31,6 +34,7 @@ ui <- shinydashboard::dashboardPage(
     )
   ),
  shinydashboard::dashboardBody(
+   waiter::autoWaiter(),
   shinydashboard::tabItems(
     shinydashboard::tabItem("blog_post_graphs",
      shiny::fluidRow(
@@ -140,7 +144,7 @@ ui <- shinydashboard::dashboardPage(
              width = 5,
              status = "info",
              solidHeader = TRUE,
-             plotly::plotlyOutput("country_wise_dist_log_cohort_size_graph")),
+             plotly::plotlyOutput("country_wise_dist_log_cohort_size_graph")) %>% shinycssloaders::withSpinner(),
          shinydashboard::box(title = "Country Wise Distribution of Study Duration",
              width = 5,
              status = "info",
@@ -158,6 +162,7 @@ ui <- shinydashboard::dashboardPage(
 
 # server------------------------------------------------------------------------
 server <- function(input, output) {
+
 
   #> Summary Stats
 
