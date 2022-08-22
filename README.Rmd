@@ -152,6 +152,9 @@ The burden of air pollution across the world is also not uniform. While `r perce
 
 ```{r mean_pm2.5_population_graph_calcs, echo=FALSE, message=FALSE, warning=FALSE}
 
+#> Add a note mentioning that this graph is PM2.5 specific
+
+
 # aqli color population in ordered pm2.5 buckets
 aqli_color_grp_pm2.5_buckets <- aqli_color %>%
   mutate(region = ifelse(pm2020 >= 0 & pm2020 <= 25, "0-25", pm2020), 
@@ -171,9 +174,9 @@ aqli_color_grp_pm2.5_buckets <- aqli_color %>%
   mutate(tot_pop_prop = (tot_pop/sum(tot_pop))*100)
   
   
-# epi total number of studies in ordered pollution buckets 
+# epi total number of studies in ordered pollution buckets (makes sense to count different countries in a pooled study as different studies)
 epi_num_studies_grp_pm2.5_buckets <- epi %>%
-  filter(!is.na(mean_pm2.5) & mean_pm2.5 != "NA") %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0) %>%
     mutate(region = ifelse(mean_pm2.5 >= 0 & mean_pm2.5 <= 25, "0-25", mean_pm2.5), 
          region = ifelse(mean_pm2.5 > 25 & mean_pm2.5 <= 50, ">25-50", region), 
          region = ifelse(mean_pm2.5 > 50 & mean_pm2.5 <= 75, ">50-75", region), 
@@ -219,9 +222,9 @@ pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
         axis.line.x = element_line(color = "black"))
 
 
-#> mean pm2.5 distribution segregated by country (density plot)
+#> mean pm2.5 distribution segregated by country (density plot): makes sense to count different country studies separately, as we are making country wise distributions, so we want to see all PM2.5 ranges covered in a given country.
 mean_pm2.5_country_wise_graph <- epi %>% 
-  filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0) %>%
   ggplot() +
   geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
   scale_x_continuous(breaks = seq(1, 100, 2)) +
@@ -293,34 +296,34 @@ tot_pop_below_x_lp_micr_gm_millions <- round(total_pop_below_x_lp_micr_gm/100000
 #> percent studies in a given pollution bucket 
 
 
-# higher than hp
+# higher than hp: makes sense to count different countries in a pooled study as different studies.
 epi_num_studies_in_hp <- epi %>%
-  filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA") & non_pm2.5 = 0) %>%
   filter(mean_pm2.5 > pm2.5_thresh_highly_polluted) %>%
   nrow() %>%
   unlist()
 
-perc_epi_studies_in_hp <- round((epi_num_studies_in_hp/nrow(epi %>% filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA")))*100, 1)
+perc_epi_studies_in_hp <- round((epi_num_studies_in_hp/nrow(epi %>% filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0)))*100, 1)
 
-# higher than sp
+# higher than sp: makes sense to count different countries in a pooled study as different studies.
 
 epi_num_studies_in_sp <- epi %>%
-  filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0) %>%
   filter(mean_pm2.5 > pm2.5_thresh_severly_polluted) %>%
   nrow() %>%
   unlist()
 
-perc_epi_studies_in_sp <- round((epi_num_studies_in_sp/nrow(epi %>% filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA")))*100, 1)
+perc_epi_studies_in_sp <- round((epi_num_studies_in_sp/nrow(epi %>% filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0)))*100, 1)
 
-# less than lp
+# less than lp: makes sense to count different countries in a pooled study as different studies.
 
 epi_num_studies_in_lp <- epi %>%
-  filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0) %>%
   filter(mean_pm2.5 < pm2.5_thresh_low_polluted) %>%
   nrow() %>%
   unlist()
 
-perc_epi_studies_in_lp <- round((epi_num_studies_in_lp/nrow(epi %>% filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA")))*100, 1)
+perc_epi_studies_in_lp <- round((epi_num_studies_in_lp/nrow(epi %>% filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0)))*100, 1)
 
 # plot population and number of studies bar graph
 pop_num_studies_in_pollution_buckets_graph
@@ -331,7 +334,7 @@ mean_pm2.5_country_wise_graph
 
 &nbsp;
 
-  * In total `r nrow(epi)` AQI epi studies were included in the final [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
+  * In total `r length(unique(epi$paper_uid))` AQI epi studies were included in the final [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
   
   
   * `r perc_pop_above_x_hp_micr_gm` percent of the world population, or `r tot_pop_above_x_hp_micr_gm_millions` million people, live in areas where the annual average PM~2.5~ pollution is greater than `r pm2.5_thresh_highly_polluted` µg/m³. But, only `r perc_epi_studies_in_hp` percent (`r epi_num_studies_in_hp` studies) of the total studies, have been performed in these highly polluted parts of the world. These highly polluted areas are areas where the average PM~2.5~ pollution is at least `r round(pm2.5_thresh_highly_polluted/who_pm2.5_guideline, 1)` times the WHO PM~2.5~ safe guideline of `r who_pm2.5_guideline` µg/m³.
@@ -349,12 +352,13 @@ mean_pm2.5_country_wise_graph
 
 ```{r geographic_dist_studies_calcs, echo=FALSE, message=FALSE, warning=FALSE}
 
+#> Add a note mentioning that the underlying data for this graph includes all types of pollutants and also that, each country in a pooled study is counted separately.
 
-# generate summary dataset for total number of studies conducted in a given country
+# generate summary dataset for total number of studies conducted in a given country: (makes sense to count each country in a pooled dataset)
 epi_country_count <- epi %>%
   select(country) %>%
   count(country) %>%
-  filter(country != "NA") 
+  filter((country != "NA" | !is.na(country))) 
 
 # making country names match before joining epi file with color file
 epi_country_count$country <- str_replace(epi_country_count$country, "USA", "United States")
@@ -374,7 +378,7 @@ world$name_long <- str_replace(world$name_long, "Vatican", "Vatican City")
 world$name_long <- str_replace(world$name_long, "Brunei Darussalam", "Brunei")
 world$name_long <- str_replace(world$name_long, "Somaliland", "Somalia")
 
-# joining world shape file with the epi conutry wise count dataset
+# joining world shape file with the epi country wise count dataset
 world_shp_epi <- world %>%
   left_join(epi_country_count, by = c("name_long" = "country")) %>%
   select(name_long, n, geometry) %>%
@@ -448,9 +452,14 @@ geographic_dist_graph
 
 ```{r aq_epi_studies_over_time_graph, echo=FALSE, message=FALSE, warning=FALSE}
 
-epi %>%
+#> Add a note mentioning that the underlying data for this graph includes all types of pollutants but only one row is counted for a given pooled study.
+
+epi %>% 
+dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
   group_by(publishing_year) %>%
   summarise(total_studies = n()) %>%
+  ungroup() %>%
+  filter((total_studies != "NA" | !is.na(total_studies))) %>%
   ggplot() +
   geom_line(mapping = aes(x = publishing_year, y = total_studies), lwd = 1.2, color = "cornflowerblue")+
 scale_x_continuous(breaks = seq(1980, 2030, 5)) +
@@ -474,6 +483,8 @@ scale_x_continuous(breaks = seq(1980, 2030, 5)) +
 
 ```{r dist_duration_study_calcs, echo=FALSE, message=FALSE, warning=FALSE}
 
+#> I think its ok to count different countries in a pooled study as different studies, but as of now this graph is PM2.5 specific. Can generalize it to all pollutants.
+
 #> Density plot of study duration (commented for now, can use later if required)
 # epi %>%
 #   filter(!is.na(study_duration)) %>%
@@ -491,7 +502,7 @@ scale_x_continuous(breaks = seq(1980, 2030, 5)) +
 # creating a temporary Africa dataset: adding in a temp row with Africa filled in to plot as an empty panel in a final figure
 
 epi_with_africa <- epi %>%
-  filter(continent != "NA") %>%
+  filter((continent != "NA" | !is.na(continent)), (mean_pm2.5 != "NA" | !is.na(mean_pm2.5)), non_pm2.5 = 0) %>%
   add_row(continent = "Africa")
 
 # adding an order panel in the epi aftica dataset
@@ -524,10 +535,10 @@ long_term_study_duration <- 25
 
 # countries with studies greater than x (long_term) years of study duration
 epi_long_term_studies_countries <- epi %>%
-  filter(study_duration > long_term_study_duration) %>%
+  filter(study_duration > long_term_study_duration, (mean_pm2.5 != "NA" | !is.na(mean_pm2.5)), non_pm2.5 = 0) %>%
   select(country) %>%
   unlist() %>%
-  unique()
+  unique() 
 
 # total number of studies in South America
 num_studies_south_america <- epi %>%
@@ -619,10 +630,15 @@ We are seeking to make this analysis as current, complete and error-free as poss
 ####  PM2.5 distributions of the lower limits and upper limits of exposure range (Density and Histogram Plots)
 
 ```{r pm2.5_expo_ul_ll, echo=FALSE, message=FALSE, warning=FALSE}
+
+
+#> Specific to PM2.5 and count separate countries in a pooled study separately
+
 #> exposure distribution density and histogram plots (PM2.5 LL and PM2.5 UL)
 
 # create long dataset
 epi_long <- epi %>% 
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0) %>%
   pivot_longer(cols = contains("pm2.5_exposure"), names_to =  "exposure_type", values_to = "exposure_value") %>%
   select(exposure_type, exposure_value) %>%
   filter(!is.na(exposure_value)) 
@@ -650,8 +666,12 @@ epi_long %>%
 
 #### Age distributions of lower limits and upper limits of age range (Density and Histogram plots)
 ```{r age_dist_ul_ll, echo=FALSE, message=FALSE, warning=FALSE}
+
+#> Different countries in a pooled study should be counted separately. As of now this is PM2.5 specific, but can be generalized in the future.
+
 #> (5) age distribution plot (LL and UL) using the long dataset (density plot)
 epi %>% 
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0, (!is.na(cohort_age_ll) | !is.na(cohort_age_ul) | cohort_age_ll != "NA" | cohort_age_ul != "NA")) %>%
   pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
   select(age_dist_type, age_value) %>%
   filter(!is.na(age_value)) %>%
@@ -663,6 +683,7 @@ epi %>%
 
 #> (6) age distribution plot (LL and UL) using the long dataset (histogram plot)
 epi %>% 
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0, (!is.na(cohort_age_ll) | !is.na(cohort_age_ul) | cohort_age_ll != "NA" | cohort_age_ul != "NA")) %>%
   pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
   select(age_dist_type, age_value) %>%
   filter(!is.na(age_value)) %>%
@@ -677,14 +698,19 @@ epi %>%
 #### Country wise distribution of Cohort Sizes (Density and Histogram plots)
 ```{r country_wise_cohort_size, echo=FALSE, message=FALSE, warning=FALSE}
 
+#> Different countries in a pooled study should be counted separately. As of now this is PM2.5 specific, but can be generalized in the future.
+
+
 #> (7) Country Wise Cohort Size density plot
 epi %>%
+    filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0, (!is.na(cohort_size) | cohort_size != "NA")) %>%
   ggplot() +
   geom_density(mapping = aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
   theme_tufte()
 
 #> (8) Country wise Cohort Size histogram plot
 epi %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0, (!is.na(cohort_size) | cohort_size != "NA")) %>%
   ggplot() +
   geom_histogram(mapping = aes(x = log10(cohort_size), fill = country), alpha = 0.5, position = "identity") +
   theme_tufte()
@@ -695,8 +721,12 @@ epi %>%
 #### Country wise Distribution of Study Duration (Density and Histogram Plots)
 ```{r study_duration_dist_country_wise, echo=FALSE, message=FALSE, warning=FALSE}
 
+#> Different countries in a pooled study should be counted separately. As of now this is PM2.5 specific, but can be generalized in the future.
+
+
 #> (9) Country wise Study duration density plot
 epi %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0, (!is.na(study_duration) | study_duration != "NA")) %>%
   ggplot() +
   geom_density(mapping = aes(x = study_duration, fill = country, alpha = 0.5)) +
   scale_x_continuous(breaks = seq(0, 40, 5)) +
@@ -705,12 +735,15 @@ epi %>%
 #> Country Wise Study Duration histogram
 
 epi %>%
+  filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 = 0, (!is.na(study_duration) | study_duration != "NA")) %>%
   ggplot() +
   geom_histogram(mapping = aes(x = study_duration, fill = country, alpha = 0.5), position = "identity", alpha = 0.5, color = "white", binwidth = 1) +
   scale_x_continuous(breaks = seq(0, 40, 5)) +
   theme_tufte() +
   facet_wrap(~country, nrow = 5) +
   theme(legend.position = "bottom")
+
+
   
 
 
