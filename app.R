@@ -1,32 +1,9 @@
 ## shiny app script for epi.meta.analysis--------------------------------------
 
-print("foo0")
 # load app.R helper file
 # source("./R/app_helper.R")
-print("foo1/2")
 
-# app.R helper file-------------------------------------------------------------
-
-## libraries
-library(readr)
-library(dplyr)
-library(stringr)
-library(magrittr)
-library(ggplot2)
-library(readr)
-library(tidytext)
-library(tidyr)
-library(tidyverse)
-library(ggthemes)
-library(sf)
-library(rnaturalearth)
-library(rnaturalearthdata)
-library(mapsf)
-library(colorspace)
-library(shiny)
-library(shinydashboard)
-library(DT)
-library(googlesheets4)
+# libraries
 library(shiny)
 library(shinydashboard)
 library(plotly)
@@ -34,57 +11,9 @@ library(magrittr)
 library(DT)
 library(forcats)
 library(rnaturalearth)
-
-# global variables
-
-who_pm2.5_guideline <- 5
-
-# epi studies analysis raw sheet
-# epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
-
-# AQLI color file
-# aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
-
-print("foo")
-epi <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996", sheet = "[AnalysisDataset]PM2.5MortalityAnalysisDataset")
-print("foo1")
-
-#> change default columns types
-# epi$cohort_size <- as.numeric(epi$cohort_size)
-# print("foo2")
-# epi$study_start_year<- as.numeric(epi$study_start_year)
-# epi$study_end_year <- as.numeric(epi$study_end_year)
-# epi$pm2.5_exposure_ll <- as.numeric(epi$pm2.5_exposure_ll)
-# epi$pm2.5_exposure_ul <- as.numeric(epi$pm2.5_exposure_ul)
-# epi$mean_pm2.5 <- as.numeric(epi$mean_pm2.5)
-# epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
-# epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
-# epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
-
-#> add useful columns and filter out some studies (e.g. pooled studies, meta analysis)
-
-epi <- epi %>%
-  mutate(study_duration = (study_end_year - study_start_year) + 1)
-
-#> Calculations needed for all sections above the "Results section".
-
-# percent of population not in compliance with the WHO guideline
-num_people_above_who <- aqli_color %>%
-  filter(pm2020 > who_pm2.5_guideline) %>%
-  summarise(tot_pop = sum(population, na.rm = TRUE)) %>%
-  unlist()
-
-# world population
-world_pop <- aqli_color %>%
-  summarise(tot_pop = sum(population, na.rm = TRUE)) %>%
-  unlist()
-
-percent_people_above_who <- round((num_people_above_who/world_pop)*100, 1)
-
-
-
-#------------------------------------------------------------------------------
-
+library(rnaturalearthdata)
+library(shinycssloaders)
+library(waiter)
 
 # setting global options
 options(shiny.maxRequestSize = 900*1024^2)
@@ -121,7 +50,7 @@ ui <- shinydashboard::dashboardPage(
         shinydashboard::box(
            width = 4, status = "info", solidHeader = TRUE,
            title = "PM2.5 exposure Range and Global Population Distribution",
-           plotly::plotlyOutput("pm2.5_expo_glob_pop_graph")
+           shinycssloaders::withSpinner(plotly::plotlyOutput("pm2.5_expo_glob_pop_graph"))
          ),
         shinydashboard::box(
            width = 2,
@@ -130,7 +59,7 @@ ui <- shinydashboard::dashboardPage(
         shinydashboard::box(
            width = 4, status = "info", solidHeader = TRUE,
            title = "Country Wise Mean PM2.5 Distribution",
-           plotly::plotlyOutput("mean_pm2.5_dist_country_wise_graph")
+           shinycssloaders::withSpinner(plotly::plotlyOutput("mean_pm2.5_dist_country_wise_graph"))
          )
        ),
        shiny::tags$hr(),
@@ -144,7 +73,7 @@ ui <- shinydashboard::dashboardPage(
            status = "info", solidHeader = TRUE,
            title = "Geographic Distribution of Studies",
            width = 7,
-           plotly::plotlyOutput("geographic_dist_studies")
+           shinycssloaders::withSpinner(plotly::plotlyOutput("geographic_dist_studies"))
          )
        ),
        shiny::tags$hr(),
@@ -157,21 +86,21 @@ ui <- shinydashboard::dashboardPage(
          shinydashboard::box(
            width = 8, status = "info", solidHeader = TRUE,
            title = "AQ Epi Studies Over Time",
-           plotly::plotlyOutput("epi_studies_over_time_graph")
+          shinycssloaders::withSpinner(plotly::plotlyOutput("epi_studies_over_time_graph"))
          )
        ),
        shiny::tags$hr(),
        shiny::fluidRow(
          shinydashboard::box(
            width = 3,
-           shiny::selectInput("continent_list", "Continents", choices = c(epi %>% dplyr::filter(!is.na(continent)) %>% dplyr::select(continent) %>% unlist() %>% unique(), "Africa"), multiple = TRUE, selected = "North America"),
+           shiny::selectInput("continent_list", "Continents", choices = epi %>% dplyr::filter(!is.na(continent)) %>% dplyr::select(continent) %>% unlist() %>% unique(), multiple = TRUE, selected = "North America"),
            hr(),
            shiny::selectInput("plot_type_fig5", "Plot Type", choices = c("Histogram (Frequency)", "Histogram (Density)"), selected = "Histogram (Frequency)")
          ),
          shinydashboard::box(status = "info", solidHeader = TRUE,
            title = "Epi Studies Duration Distribution (Continent Wise): Histogram",
            width = 9,
-           plotly::plotlyOutput("continent_wise_dist_duration_study_graph")
+          shinycssloaders::withSpinner(plotly::plotlyOutput("continent_wise_dist_duration_study_graph"))
          )
        ),
        shiny::tags$hr(),
@@ -194,13 +123,14 @@ ui <- shinydashboard::dashboardPage(
            width = 5,
              status = "info",
              solidHeader = TRUE,
-             plotly::plotlyOutput("pm2.5_ll_ul_dist_graph")),
+            shinycssloaders::withSpinner(plotly::plotlyOutput("pm2.5_ll_ul_dist_graph"))
+           ),
 
          shinydashboard::box(title = "Lower and Upper Limit Distributions of Age Range covered in the analysis",
              width = 5,
              status = "info",
              solidHeader = TRUE,
-             plotly::plotlyOutput("age_ll_ul_graph"))
+            shinycssloaders::withSpinner(plotly::plotlyOutput("age_ll_ul_graph")))
        ),
        shiny::tags$hr(),
        shiny::fluidRow(
@@ -214,12 +144,12 @@ ui <- shinydashboard::dashboardPage(
              width = 5,
              status = "info",
              solidHeader = TRUE,
-             plotly::plotlyOutput("country_wise_dist_log_cohort_size_graph")),
+            shinycssloaders::withSpinner(plotly::plotlyOutput("country_wise_dist_log_cohort_size_graph"))),
          shinydashboard::box(title = "Country Wise Distribution of Study Duration",
              width = 5,
              status = "info",
              solidHeader = TRUE,
-             plotly::plotlyOutput("country_wise_dist_study_duration"))
+            shinycssloaders::withSpinner(plotly::plotlyOutput("country_wise_dist_study_duration")))
        )
 
       ),
@@ -237,8 +167,8 @@ server <- function(input, output) {
 
   # number of papers value box
   output$num_papers <- shinydashboard::renderValueBox({
-   # num_papers
-    num_papers <- as.numeric(nrow(epi))
+   # num_papers (not counting different countries in a pooled study separately, but including all pollutants)
+    num_papers <- as.numeric(length(unique(epi$paper_uid)))
 
     shinydashboard::valueBox(
       value = shiny::tags$p(stringr::str_c(num_papers, "", sep = ""), style = "font-size: 75%;"),
@@ -249,9 +179,18 @@ server <- function(input, output) {
 
   # cohort size range value box
   output$cohort_size_range <- shinydashboard::renderValueBox({
-    # cohort size range
-    cohort_size_ll <- min(epi$cohort_size, na.rm = TRUE)
-    cohort_size_ul_millions <- round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)
+    # cohort size range (counting different studies in a pooled study separately, and including all pollutants)
+    cohort_size_ll <- epi %>%
+      filter(!is.na(cohort_size), cohort_size != "NA") %>%
+      select(cohort_size) %>%
+      min(na.rm = TRUE) %>%
+      unlist()
+    cohort_size_ul <- epi %>%
+      filter(!is.na(cohort_size), cohort_size != "NA") %>%
+      select(cohort_size) %>%
+      max(na.rm = TRUE) %>%
+      unlist()
+    cohort_size_ul_millions <- round(cohort_size_ul/1000000, 1)
     final_cohort_range_string <- stringr::str_c(cohort_size_ll, "-", cohort_size_ul_millions, "million", sep = " ")
 
     shinydashboard::valueBox(
@@ -263,7 +202,7 @@ server <- function(input, output) {
 
   # study publishing value box
   output$study_publishing_year_range <- shinydashboard::renderValueBox({
-    # study duration range
+    # study duration range (count multiple countries in a pooled study to be a single country, include all pollutants)
     study_publishing_min <- min(epi$publishing_year, na.rm = TRUE)
     study_publishing_max <-  max(epi$publishing_year, na.rm = TRUE)
     final_study_duration_string <- stringr::str_c(study_publishing_min, "-", study_publishing_max, sep = " ")
@@ -282,7 +221,7 @@ server <- function(input, output) {
 
   output$num_of_countries_covered <- shinydashboard::renderValueBox({
 
-    num_countries_covered <- epi %>% filter(!is.na(country)) %>% select(country) %>% unlist() %>% unique() %>% length()
+    num_countries_covered <- epi %>% filter(!is.na(country), country != "NA") %>% select(country) %>% unlist() %>% unique() %>% length()
 
     shinydashboard::valueBox(
       value = tags$p(stringr::str_c(num_countries_covered, "", sep = ""), style = "font-size: 75%;"),
@@ -294,8 +233,6 @@ server <- function(input, output) {
 
   #> pm2.5 and global population distribution graph
   output$pm2.5_expo_glob_pop_graph <- plotly::renderPlotly({
-
-
 
   # percent population in pollution buckets
   tot_pop_in_bucket <-  aqli_color %>%
@@ -311,7 +248,7 @@ server <- function(input, output) {
 
   # percent studies in the given pollution bucket
   tot_studies_in_bucket <- epi %>%
-    dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA") %>%
+    dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
     dplyr::filter(mean_pm2.5 >= input$pm2.5_bucket[1], mean_pm2.5 <= input$pm2.5_bucket[2]) %>%
     nrow()
 
@@ -353,7 +290,7 @@ server <- function(input, output) {
     }
 
     mean_pm2.5_country_wise_graph <- epi %>%
-      dplyr::filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA", country %in% input$countries_fig2) %>%
+      dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, country %in% input$countries_fig2) %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
       ggplot2::labs(x = "Mean PM2.5 concentration (in µg/m³)") +
@@ -371,7 +308,7 @@ server <- function(input, output) {
     epi_country_count <- epi %>%
       dplyr::select(country) %>%
     dplyr::count(country) %>%
-      dplyr::filter(country != "NA")
+      dplyr::filter(country != "NA", !is.na(country), !is.na(n))
 
     # making country names match before joining epi file with color file
     epi_country_count$country <- stringr::str_replace(epi_country_count$country, "USA", "United States")
@@ -481,9 +418,11 @@ output$geographic_dist_studies_table <- shiny::renderDataTable({
 
 output$epi_studies_over_time_graph <- plotly::renderPlotly({
   epi %>%
+    dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
     dplyr::group_by(publishing_year) %>%
     dplyr::summarise(total_studies = dplyr::n()) %>%
-    dplyr::filter(publishing_year >= input$year_range[1], publishing_year <= input$year_range[2]) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(publishing_year >= input$year_range[1], publishing_year <= input$year_range[2], total_studies != "NA", !is.na(total_studies)) %>%
     ggplot2::ggplot() +
     ggplot2::geom_line(mapping = ggplot2::aes(x = publishing_year, y = total_studies), lwd = 1.2, color = "cornflowerblue") +
     ggplot2::labs(x = "Year", y = "Total Number of Studies") +
@@ -497,9 +436,11 @@ output$epi_studies_over_time_graph <- plotly::renderPlotly({
 
 output$aq_epi_studies_over_time <- renderDataTable({
   dt_filter_epi_over_time <-   epi %>%
+    dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
     dplyr::group_by(publishing_year) %>%
     dplyr::summarise(total_studies = dplyr::n()) %>%
-    dplyr::filter(publishing_year >= input$year_range[1], publishing_year <= input$year_range[2])
+    dplyr::ungroup() %>%
+    dplyr::filter(publishing_year >= input$year_range[1], publishing_year <= input$year_range[2], total_studies != "NA", !is.na(total_studies))
   DT::datatable(dt_filter_epi_over_time, options = list(pageLength = 6))
 
 })
@@ -507,17 +448,14 @@ output$aq_epi_studies_over_time <- renderDataTable({
 #> Continent Wise Distribution of Duration of Study graph
 
 output$continent_wise_dist_duration_study_graph <- plotly::renderPlotly({
-  epi_with_africa <- epi %>%
-    dplyr::filter(continent != "NA") %>%
-    dplyr::add_row(continent = "Africa")
-
-  # adding an order panel in the epi aftica dataset
-  epi_with_africa <- epi_with_africa %>%
+  continent_wise_study_duration_summary_table <- epi %>%
+    dplyr::filter(continent != "NA", !is.na(continent)) %>%
     dplyr::mutate(order_continent = ifelse(continent == "Asia", 1, 0),
            order_continent = ifelse(continent == "Europe", 2, order_continent),
            order_continent = ifelse(continent == "North America", 3, order_continent),
            order_continent = ifelse(continent == "South America", 4, order_continent),
-           order_continent = ifelse(continent == "Africa", 5, order_continent))
+           order_continent = ifelse(continent == "Africa", 5, order_continent),
+           order_continent = ifelse(continent == "Oceania", 6, order_continent))
 
 
   # plot the figure with empty Africa panel
@@ -526,12 +464,12 @@ output$continent_wise_dist_duration_study_graph <- plotly::renderPlotly({
     stop("Please select atleast one continent to proceed.")
   }
   if(input$plot_type_fig5 == "Histogram (Frequency)"){
-    continent_wise_study_duration_graph <- epi_with_africa %>%
+    continent_wise_study_duration_graph <- continent_wise_study_duration_summary_table %>%
       dplyr::filter(continent %in% input$continent_list) %>%
       ggplot2::ggplot() +
       ggplot2::geom_histogram(mapping = ggplot2::aes(x = study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
       ggplot2::labs(x = "Study Duration") +
-      ggplot2::scale_x_continuous(breaks = seq(0, 40, 5)) +
+      ggplot2::scale_x_continuous(breaks = seq(0, 40, 10)) +
       ggthemes::theme_hc() +
       ggplot2::theme(legend.title = element_blank()) +
       ggplot2::facet_wrap(~forcats::fct_reorder(continent, order_continent), nrow = 1) +
@@ -539,13 +477,13 @@ output$continent_wise_dist_duration_study_graph <- plotly::renderPlotly({
             axis.line.x = element_line(color = "black"))
 
   } else if (input$plot_type_fig5 == "Histogram (Density)"){
-    continent_wise_study_duration_graph <- epi_with_africa %>%
+    continent_wise_study_duration_graph <- continent_wise_study_duration_summary_table %>%
       dplyr::filter(continent %in% input$continent_list) %>%
       ggplot2::ggplot() +
       ggplot2::geom_histogram(mapping = ggplot2::aes(x = study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
       ggplot2::geom_histogram(mapping = ggplot2::aes(x = study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
       ggplot2::labs(x = "Study Duration") +
-      ggplot2::scale_x_continuous(breaks = seq(0, 40, 5)) +
+      ggplot2::scale_x_continuous(breaks = seq(0, 40, 10)) +
       ggthemes::theme_hc() +
       ggplot2::theme(legend.title = element_blank()) +
       ggplot2::facet_wrap(~forcats::fct_reorder(continent, order_continent), nrow = 1) +
@@ -561,9 +499,12 @@ output$continent_wise_dist_duration_study_graph <- plotly::renderPlotly({
 
 #> Distribution of lower and upper limits of PM2.5 exposure range
 
+# Note: This is PM2.5 specific and different countries in a pooled study are counted separately.
+
 output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
   # create long dataset
   epi_long <- epi %>%
+    filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
   tidyr::pivot_longer(cols = contains("pm2.5_exposure"), names_to =  "exposure_type", values_to = "exposure_value") %>%
     dplyr::select(exposure_type, exposure_value) %>%
     dplyr::filter(!is.na(exposure_value))
@@ -572,7 +513,6 @@ output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
     epi_long %>%
       ggplot2::ggplot() +
       ggplot2::geom_histogram(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") +
-      ggplot2::scale_x_continuous(breaks = seq(0, 250, 10)) +
       ggplot2::labs(x = "PM2.5 concentration (in µg/m³)") +
       ggthemes::theme_hc() +
       ggplot2::theme(axis.line.y = element_line(color = "black"),
@@ -582,7 +522,6 @@ output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
     epi_long %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
-      ggplot2::scale_x_continuous(breaks = seq(0, 250, 10)) +
       ggplot2::labs(x = "PM2.5 concentration (in µg/m³)") +
       ggthemes::theme_hc() +
       ggplot2::theme(axis.line.y = element_line(color = "black"),
@@ -597,6 +536,8 @@ output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
 
 #> Country Wise Distribution of Log Cohort Size Graph
 
+# Different countries in a pooled study are counted separately, but this is not a PM2.5 specific graph.
+
 output$country_wise_dist_log_cohort_size_graph <- plotly::renderPlotly({
 
   if(length(input$countries_list_fig7) == 0){
@@ -607,6 +548,7 @@ output$country_wise_dist_log_cohort_size_graph <- plotly::renderPlotly({
 
   if("all" %in% input$countries_list_fig7){
     epi %>%
+      dplyr::filter(!is.na(cohort_size), cohort_size != "NA") %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
       ggthemes::theme_hc() +
@@ -616,6 +558,7 @@ output$country_wise_dist_log_cohort_size_graph <- plotly::renderPlotly({
 
   } else if ((("all" %in% input$countries_list_fig7) == FALSE) & (length(input$countries_list_fig7) >= 1)){
     epi %>%
+      dplyr::filter(!is.na(cohort_size), cohort_size != "NA") %>%
       dplyr::filter(country %in% input$countries_list_fig7) %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
@@ -626,15 +569,17 @@ output$country_wise_dist_log_cohort_size_graph <- plotly::renderPlotly({
   }
 
 
-
 })
 
 #> Distribution of lower limit and upper limit of ages covered in this analysis
+
+# This is not a PM2.5 specific graph and different countries in a cohort study are counted separately.
 
 output$age_ll_ul_graph <- plotly::renderPlotly({
 
   if(input$plot_type_fig6 == "Histogram"){
     epi %>%
+      filter(((!is.na(cohort_age_ll) | !is.na(cohort_age_ul)) | (cohort_age_ll != "NA" | cohort_age_ul != "NA"))) %>%
       tidyr::pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
       dplyr::select(age_dist_type, age_value) %>%
       dplyr::filter(!is.na(age_value)) %>%
@@ -650,6 +595,7 @@ output$age_ll_ul_graph <- plotly::renderPlotly({
 
   } else if(input$plot_type_fig6 == "Density"){
     epi %>%
+      filter(((!is.na(cohort_age_ll) | !is.na(cohort_age_ul)) | (cohort_age_ll != "NA" | cohort_age_ul != "NA"))) %>%
       tidyr::pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
       dplyr::select(age_dist_type, age_value) %>%
       dplyr::filter(!is.na(age_value)) %>%
@@ -667,6 +613,10 @@ output$age_ll_ul_graph <- plotly::renderPlotly({
 
 #> Country wise distribution of study duration
 
+# This is not a PM2.5 specific graph and in this all countries in a given pooled study are counted separately.
+
+# Country wise distribution
+
 output$country_wise_dist_study_duration <- plotly::renderPlotly({
   if(length(input$countries_list_fig7) == 0){
     stop("Please select atleast one country to proceed.")
@@ -676,6 +626,7 @@ output$country_wise_dist_study_duration <- plotly::renderPlotly({
 
   if("all" %in% input$countries_list_fig7){
     epi %>%
+      filter(!is.na(study_duration), study_duration != "NA") %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = study_duration, fill = country, alpha = 0.5)) +
       ggplot2::scale_x_continuous(breaks = seq(0, 40, 5)) +
@@ -685,6 +636,7 @@ output$country_wise_dist_study_duration <- plotly::renderPlotly({
       return()
   } else if ((("all" %in% input$countries_list_fig7) == FALSE) & (length(input$countries_list_fig7) >= 1)){
     epi %>%
+      filter(!is.na(study_duration), study_duration != "NA") %>%
       dplyr::filter(country %in% input$countries_list_fig7) %>%
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = study_duration, fill = country, alpha = 0.5)) +
