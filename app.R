@@ -181,13 +181,13 @@ server <- function(input, output) {
   output$cohort_size_range <- shinydashboard::renderValueBox({
     # cohort size range (counting different studies in a pooled study separately, and including all pollutants)
     cohort_size_ll <- epi %>%
-      filter(!is.na(cohort_size), cohort_size != "NA") %>%
-      select(cohort_size) %>%
+      dplyr::filter(!is.na(cohort_size), cohort_size != "NA") %>%
+      dplyr::select(cohort_size) %>%
       min(na.rm = TRUE) %>%
       unlist()
     cohort_size_ul <- epi %>%
-      filter(!is.na(cohort_size), cohort_size != "NA") %>%
-      select(cohort_size) %>%
+      dplyr::filter(!is.na(cohort_size), cohort_size != "NA") %>%
+      dplyr::select(cohort_size) %>%
       max(na.rm = TRUE) %>%
       unlist()
     cohort_size_ul_millions <- round(cohort_size_ul/1000000, 1)
@@ -249,11 +249,14 @@ server <- function(input, output) {
     # percent studies in the given pollution bucket
     tot_studies_in_bucket <- epi %>%
       dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+      dplyr::group_by(paper_uid) %>%
+      dplyr::summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
       dplyr::filter(mean_pm2.5 >= input$pm2.5_bucket[1], mean_pm2.5 <= input$pm2.5_bucket[2]) %>%
       nrow()
 
     tot_studies_overall <- nrow(epi %>%
-                                  dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA"))
+                                  dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
+                                  dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0))
 
     percent_studies_in_bucket <- round((tot_studies_in_bucket/tot_studies_overall)*100, 1)
 
@@ -378,7 +381,7 @@ server <- function(input, output) {
 
     } else if ((("all" %in% input$countries_fig3) == FALSE) & (length(input$countries_fig3) >= 1)) {
       geographic_dist_graph <- world_shp_epi_color %>%
-        filter(country %in% input$countries_fig3) %>%
+        dplyr::filter(country %in% input$countries_fig3) %>%
         ggplot2::ggplot() +
         ggplot2::geom_sf(mapping = ggplot2::aes(fill = avg_pm2.5_2020), color = "white") +
         colorspace::scale_fill_continuous_sequential(palette = "YlOrRd") +
@@ -449,7 +452,10 @@ server <- function(input, output) {
 
   output$continent_wise_dist_duration_study_graph <- plotly::renderPlotly({
     continent_wise_study_duration_summary_table <- epi %>%
-      dplyr::filter(continent != "NA", !is.na(continent)) %>%
+      dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
+      dplyr::group_by(paper_uid, continent) %>%
+      dplyr::summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
+      dplyr::ungroup() %>%
       dplyr::mutate(order_continent = ifelse(continent == "Asia", 1, 0),
                     order_continent = ifelse(continent == "Europe", 2, order_continent),
                     order_continent = ifelse(continent == "North America", 3, order_continent),
@@ -467,7 +473,7 @@ server <- function(input, output) {
       continent_wise_study_duration_graph <- continent_wise_study_duration_summary_table %>%
         dplyr::filter(continent %in% input$continent_list) %>%
         ggplot2::ggplot() +
-        ggplot2::geom_histogram(mapping = ggplot2::aes(x = study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
+        ggplot2::geom_histogram(mapping = ggplot2::aes(x = average_study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
         ggplot2::labs(x = "Study Duration") +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 10)) +
         ggthemes::theme_hc() +
@@ -480,8 +486,7 @@ server <- function(input, output) {
       continent_wise_study_duration_graph <- continent_wise_study_duration_summary_table %>%
         dplyr::filter(continent %in% input$continent_list) %>%
         ggplot2::ggplot() +
-        ggplot2::geom_histogram(mapping = ggplot2::aes(x = study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
-        ggplot2::geom_histogram(mapping = ggplot2::aes(x = study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
+        ggplot2::geom_histogram(mapping = ggplot2::aes(x = average_study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
         ggplot2::labs(x = "Study Duration") +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 10)) +
         ggthemes::theme_hc() +
@@ -504,13 +509,15 @@ server <- function(input, output) {
   output$pm2.5_ll_ul_dist_graph <- plotly::renderPlotly({
     # create long dataset
     epi_long <- epi %>%
-      filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+      dplyr::filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
       tidyr::pivot_longer(cols = contains("pm2.5_exposure"), names_to =  "exposure_type", values_to = "exposure_value") %>%
-      dplyr::select(exposure_type, exposure_value) %>%
+      dplyr::select(paper_uid, exposure_type, exposure_value) %>%
       dplyr::filter(!is.na(exposure_value))
 
     if(input$plot_type_fig6 == "Histogram"){
       epi_long %>%
+        dplyr::group_by(paper_uid, exposure_type) %>%
+        dplyr::summarise(exposure_value = ifelse(exposure_type == "pm2.5_exposure_ll", min(exposure_value, na.rm = TRUE), max(exposure_value, na.rm = TRUE))) %>%
         ggplot2::ggplot() +
         ggplot2::geom_histogram(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") +
         ggplot2::labs(x = "PM2.5 concentration (in µg/m³)") +
@@ -520,6 +527,8 @@ server <- function(input, output) {
 
     } else if(input$plot_type_fig6 == "Density"){
       epi_long %>%
+        dplyr::group_by(paper_uid, exposure_type) %>%
+        dplyr::summarise(exposure_value = ifelse(exposure_type == "pm2.5_exposure_ll", min(exposure_value, na.rm = TRUE), max(exposure_value, na.rm = TRUE))) %>%
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
         ggplot2::labs(x = "PM2.5 concentration (in µg/m³)") +
@@ -579,7 +588,7 @@ server <- function(input, output) {
 
     if(input$plot_type_fig6 == "Histogram"){
       epi %>%
-        filter(((!is.na(cohort_age_ll) | !is.na(cohort_age_ul)) | (cohort_age_ll != "NA" | cohort_age_ul != "NA"))) %>%
+        dplyr::filter(((!is.na(cohort_age_ll)) | (cohort_age_ll != "NA")) & ((!is.na(cohort_age_ul)) | (cohort_age_ul != "NA"))) %>%
         tidyr::pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
         dplyr::select(age_dist_type, age_value) %>%
         dplyr::filter(!is.na(age_value)) %>%
@@ -595,7 +604,7 @@ server <- function(input, output) {
 
     } else if(input$plot_type_fig6 == "Density"){
       epi %>%
-        filter(((!is.na(cohort_age_ll) | !is.na(cohort_age_ul)) | (cohort_age_ll != "NA" | cohort_age_ul != "NA"))) %>%
+        dplyr::filter(((!is.na(cohort_age_ll)) | (cohort_age_ll != "NA")) & ((!is.na(cohort_age_ul)) | (cohort_age_ul != "NA"))) %>%
         tidyr::pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
         dplyr::select(age_dist_type, age_value) %>%
         dplyr::filter(!is.na(age_value)) %>%
@@ -626,7 +635,7 @@ server <- function(input, output) {
 
     if("all" %in% input$countries_list_fig7){
       epi %>%
-        filter(!is.na(study_duration), study_duration != "NA") %>%
+        dplyr::filter(!is.na(study_duration), study_duration != "NA") %>%
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = study_duration, fill = country, alpha = 0.5)) +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 5)) +
@@ -636,7 +645,7 @@ server <- function(input, output) {
         return()
     } else if ((("all" %in% input$countries_list_fig7) == FALSE) & (length(input$countries_list_fig7) >= 1)){
       epi %>%
-        filter(!is.na(study_duration), study_duration != "NA") %>%
+        dplyr::filter(!is.na(study_duration), study_duration != "NA") %>%
         dplyr::filter(country %in% input$countries_list_fig7) %>%
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = study_duration, fill = country, alpha = 0.5)) +

@@ -47,6 +47,15 @@ epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 epi <- epi %>%
   mutate(study_duration = (study_end_year - study_start_year) + 1)
 
+#> setting report parameters
+min_sample_size <- 1000
+min_study_duration_in_years <- 1
+
+#> Filtering the epi database (minimum cohort size: >1000, minimum study duration: > 1 year): commented for now.
+epi <- epi %>%
+  mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
+  filter(cohort_size > min_sample_size, study_duration > min_study_duration_in_years)
+
 #> Calculations needed for all sections above the "Results section".
 
 # percent of population not in compliance with the WHO guideline

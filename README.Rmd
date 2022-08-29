@@ -70,11 +70,20 @@ epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
 epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
 epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
-#> add useful columns and filter out some studies (e.g. pooled studies, meta analysis)
+#> add useful columns and filter out some studies (e.g. pooled studies, meta analysis, other parameter based filtering)
+epi <- epi %>% 
+  mutate(study_duration = study_end_year - study_start_year)
 
+#> setting report parameters
+min_sample_size <- 1000
+min_study_duration_in_years <- 1
+
+#> Filtering the epi database (minimum cohort size: >1000, minimum study duration: > 1 year): commented for now.
 epi <- epi %>%
-  mutate(study_duration = (study_end_year - study_start_year) + 1)
+  mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
+  filter(cohort_size > min_sample_size, study_duration > min_study_duration_in_years)
 
+ 
 #> Calculations needed for all sections above the "Results section".
 
 # percent of population not in compliance with the WHO guideline
@@ -98,10 +107,10 @@ percent_people_above_who <- round((num_people_above_who/world_pop)*100, 1)
 <!-- badges: start -->
 <!-- badges: end -->
 
-This analysis is our best first attempt to capture all epidemiological cohort studies (>`r min(epi$cohort_size, na.rm = TRUE)` people; max cohort size: `r round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)` million), that are relatively long term ((> `r min(epi$study_duration, na.rm =TRUE)` years, max study duration: `r max(epi$study_duration, na.rm =TRUE)` years) and measure the impact of ambient PM~2.5~, PM~10~, TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all cause, pre-mature)/Life Expectancy published between `r min(epi$publishing_year)` and present*, findable in available peer-reviewed literature. Hereafter, referred to as **AQ epi studies** for short.
+This analysis is our best first attempt to capture all epidemiological research studies (>`r min_sample_size` people; max sample size: `r round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)` million), that are relatively long term ((> `r min_study_duration_in_years` years, max study duration: `r max(epi$study_duration, na.rm =TRUE)` years) and measure the impact of **ambient** PM~2.5~, PM~10~, TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all cause, pre-mature)/Life Expectancy published between `r min(epi$publishing_year)` and present*, findable in available peer-reviewed literature. Hereafter, referred to as **AQ epi studies** for short.
 
 
-We are seeking to make this analysis as current, complete and error-free as possible and view it as a continual work in progress. We would appreciate the air quality community’s comments, corrections, and suggestions. Please contact **aqli-epic@uchicago.edu** or leave a comment in [this](https://github.com/aqli-epic/epi.meta.analysis) GitHub repository. 
+We are seeking to make this analysis as current, complete and error-free as possible and view it as a continual work in progress. We would appreciate the air quality community’s comments, corrections, and suggestions. Please contact **aqli-epic@uchicago.edu** or leave a comment in [this](https://github.com/aqli-epic/epi.meta.analysis) GitHub repository/directly leave comments in the [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) (more on this below). 
 
 ## Purpose
 
@@ -117,14 +126,14 @@ The burden of air pollution across the world is also not uniform. While `r perce
 
 ## Inclusion/Exclusion Criteria for studies
 
-  * The underlying [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) for this meta analysis focuses only on those papers that study the link between **PM~2.5~**, **PM~10~**, **TSP**, **Fine Particulate Matter** and **__Mortality/Life Expectancy__**.  In addition to the analysis dataset, there is a [**__master dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=0) that expands on the analysis dataset to include other useful information. The idea behind the master dataset is to record any additional details (whether additional facts about the paper, or details on other pollutants studied in the paper) that will not be a part of the main data analysis exercise. 
+  * The underlying [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) for this meta analysis focuses only on those papers that study the link between **PM~2.5~**, **PM~10~**, **TSP**, **Fine Particulate Matter** and **__Mortality/Life Expectancy__**.  In addition to the analysis dataset, there is a [**__master dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=0) that expands on the analysis dataset to include other useful information. The idea behind the master dataset is to record any additional details (whether additional facts about the paper, or details on other pollutants studied in the paper) that will not be a part of the main data analysis exercise. Master dataset will also list additional papers that do not fit into the inclusion criteria.
   
 
   * The analysis dataset excludes the following types of papers: meta-analysis, unpublished papers, papers studying the effects of indoor air pollution on Mortality/Life Expectancy, papers forecasting future air pollution/life expectancy/mortality. But, the master dataset lists all of these studies.
 
   * In Multi-Country (pooled) studies, one entry (one row in the analysis dataset) is recorded for each country in papers where country level data is available. There are some pooled studies where country level data is not available, but rather data is available for a custom region (e.g. South-East Asia), such pooled studies are excluded from the analysis dataset. But, the master dataset still lists all of these additional studies for reference.
   
-  * In cases where the same cohort is studied by different research groups at different point in time/using different methods: we have included all of those studies.
+  * In cases where the same cohort is studied by different research groups at different point in time/using different methods: we have included and counted all of those studies as separate unique studies in the analysis below.
   
   * Papers studying the health effects of pollution segregated by sectors (source apportionment type studies) are excluded from this analysis. 
   
@@ -150,12 +159,11 @@ The burden of air pollution across the world is also not uniform. While `r perce
 
   * In many papers, the upper limit or lower limit for age is not precisely specified. In these cases, we have recorded a NA. For example, there are papers where the upper limit category for age is 85+. In these cases, although we know the upper limit category, we still don't know the upper limit of the age, which could be 90, 95, 100, etc.
   
-  * In places, where the cohort size is specifed in terms of "number of regions" (for example, 17 districts) and not "number of people", we have recorded a NA in the cohort size column.
+  * In places, where the sample size is specifed in terms of "number of regions" (for example, 17 districts) and not "number of people", we have recorded a NA in the cohort size column.
   
-
   * Under the “methods” column (in the master dataset), we have only mentioned a subset of methods that were used to carry out different parts of the study. Authors may have used other methods than those mentioned in our meta analysis.
   
-  * Different graphs are generated using different subsets of the [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996). Most of them are PM~2.5~ specific (our main focus), others include all pollutants (PM~2.5~, PM~10~, TSP, Ultrafine Particles). The type of papers used to generate a given graph is specified within the graph and/or the accompanying text.
+  * Different graphs are generated using different subsets of the [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996). Most of them are PM~2.5~ specific (our main focus), others include all pollutants (PM~2.5~, PM~10~, TSP, Ultrafine Particles). The type of papers used to generate a given graph and other nuances for the graph in question are specified within the graph (as a note) and/or the accompanying text.
   
   
 ## Results
@@ -169,8 +177,16 @@ The burden of air pollution across the world is also not uniform. While `r perce
 
 ```{r mean_pm2.5_population_graph_calcs, echo=FALSE, message=FALSE, warning=FALSE}
 
-#> Add a note mentioning that this graph is PM2.5 specific (obvious from the graph)
+#> mean pm2.5 distribution segregated by country (density plot): makes sense to count different country studies separately, as we are making country wise distributions, so we want to see all PM2.5 ranges covered in a given country.
+mean_pm2.5_country_wise_graph <- epi %>% 
+  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+  ggplot() +
+  geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
+  labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")")), 
+       caption = "*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries.") +
+  theme_tufte()
 
+#> PM2.5 exposure range and population distribution
 
 # aqli color population in ordered pm2.5 buckets
 aqli_color_grp_pm2.5_buckets <- aqli_color %>%
@@ -191,9 +207,11 @@ aqli_color_grp_pm2.5_buckets <- aqli_color %>%
   mutate(tot_pop_prop = (tot_pop/sum(tot_pop))*100)
   
   
-# epi total number of studies in ordered pollution buckets (makes sense to count different countries in a pooled study as different studies)
+# epi total number of studies in ordered pollution buckets (initially filtering out pooled studies, will add back in using a for loop)
 epi_num_studies_grp_pm2.5_buckets <- epi %>%
-  filter(!is.na(mean_pm2.5) , mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+  group_by(paper_uid) %>%
+  summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
     mutate(region = ifelse(mean_pm2.5 >= 0 & mean_pm2.5 <= 25, "0-25", mean_pm2.5), 
          region = ifelse(mean_pm2.5 > 25 & mean_pm2.5 <= 50, ">25-50", region), 
          region = ifelse(mean_pm2.5 > 50 & mean_pm2.5 <= 75, ">50-75", region), 
@@ -209,16 +227,6 @@ epi_num_studies_grp_pm2.5_buckets <- epi %>%
   ungroup() %>%
   mutate(tot_studies_prop = (tot_studies/sum(tot_studies))*100)
 
-
-#> line plot version (commented for now, can uncomment later if required)
-# ggplot(mapping = aes(x= fct_reorder(region, order_pollution_group), group = 1)) +
-# geom_smooth(data = aqli_color_grp_pm2.5_buckets, mapping = aes(y = tot_pop_prop, color = "Percent of World Population")) +
-# geom_smooth(data = epi_num_studies_grp_pm2.5_buckets, mapping = aes(y = tot_studies_prop, color = "Percent of Total Studies")) +
-#   labs(x = "pm2.5 buckets", y = "Percent of World Population") +
-#   scale_y_continuous(sec.axis = sec_axis(~.*1, name = "Percent of Total Studies")) +
-#   scale_color_manual(name = "", breaks = c("Percent of World Population", "Percent of Total Studies"), values = c("Percent of World Population" = "blue", "Percent of Total Studies" = "red")) +
-# ggthemes::theme_hc()
-
 #> bar chart version
 
 # creating a master dataset for both population and studies data
@@ -233,29 +241,12 @@ pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
   geom_col(mapping = aes(x = fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.7) +
   scale_y_continuous(breaks = seq(0, 100, 10)) +
   scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) + 
-  labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "") +
+  labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "", 
+       caption = "*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries.") +
   theme_hc() +
   theme(axis.line.y = element_line(color = "black"), 
         axis.line.x = element_line(color = "black"))
 
-
-#> mean pm2.5 distribution segregated by country (density plot): makes sense to count different country studies separately, as we are making country wise distributions, so we want to see all PM2.5 ranges covered in a given country.
-mean_pm2.5_country_wise_graph <- epi %>% 
-  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
-  ggplot() +
-  geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
-  labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
-  theme_tufte()
-
-
-#> mean pm2.5 distribution segregated by country (histogram)
-# epi %>%
-#   filter(!is.na(mean_pm2.5) | mean_pm2.5 != "NA") %>%
-#   ggplot() +
-#   geom_histogram(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "white", position = "identity") +
-#   scale_x_continuous(breaks = seq(1, 100, 2)) +
-#   labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
-#   theme_tufte()
 
 #> other calculations for this block of code
 
@@ -265,6 +256,12 @@ mean_pm2.5_country_wise_graph <- epi %>%
 pm2.5_thresh_highly_polluted <- 50
 pm2.5_thresh_severly_polluted <- 75
 pm2.5_thresh_low_polluted <- 25
+
+# number of PM2.5 specific studies
+epi_pm2.5_spec_studies_total <- epi %>% 
+  distinct(paper_uid, .keep_all = TRUE) %>%
+  filter(non_pm2.5 == 0) %>%
+  nrow()
 
 # higher than hp
 
@@ -312,34 +309,41 @@ tot_pop_below_x_lp_micr_gm_millions <- round(total_pop_below_x_lp_micr_gm/100000
 #> percent studies in a given pollution bucket 
 
 
-# higher than hp: makes sense to count different countries in a pooled study as different studies.
+# higher than hp: 
 epi_num_studies_in_hp <- epi %>%
   filter(!is.na(mean_pm2.5) , mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+  group_by(paper_uid) %>%
+  summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
   filter(mean_pm2.5 > pm2.5_thresh_highly_polluted) %>%
   nrow() %>%
   unlist()
 
-perc_epi_studies_in_hp <- round((epi_num_studies_in_hp/nrow(epi %>% filter((!is.na(mean_pm2.5) | mean_pm2.5 != "NA"), non_pm2.5 == 0)))*100, 1)
+perc_epi_studies_in_hp <- round((epi_num_studies_in_hp/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% filter(non_pm2.5 == 0)))*100, 1)
 
 # higher than sp: makes sense to count different countries in a pooled study as different studies.
 
 epi_num_studies_in_sp <- epi %>%
   filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+    group_by(paper_uid) %>%
+  summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
   filter(mean_pm2.5 > pm2.5_thresh_severly_polluted) %>%
   nrow() %>%
   unlist()
 
-perc_epi_studies_in_sp <- round((epi_num_studies_in_sp/nrow(epi %>% filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0)))*100, 1)
+perc_epi_studies_in_sp <- round((epi_num_studies_in_sp/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% filter(non_pm2.5 == 0)))*100, 1)
 
 # less than lp: makes sense to count different countries in a pooled study as different studies.
 
 epi_num_studies_in_lp <- epi %>%
   filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+  group_by(paper_uid) %>%
+  summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
   filter(mean_pm2.5 < pm2.5_thresh_low_polluted) %>%
   nrow() %>%
   unlist()
 
-perc_epi_studies_in_lp <- round((epi_num_studies_in_lp/nrow(epi %>% filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0)))*100, 1)
+perc_epi_studies_in_lp <- round((epi_num_studies_in_lp/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% filter(non_pm2.5 == 0)))*100, 1)
+
 
 # plot population and number of studies bar graph
 pop_num_studies_in_pollution_buckets_graph
@@ -350,18 +354,17 @@ mean_pm2.5_country_wise_graph
 
 &nbsp;
 
-  * In total `r length(unique(epi$paper_uid))` AQI epi studies were included in the final [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
+  * In total `r length(unique(epi$paper_uid))` AQ epi studies were included in the final [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996). Of these, `r epi_pm2.5_spec_studies_total` were PM~2.5~ specific. Others (`r (length(unique(epi$paper_uid)) - epi_pm2.5_spec_studies_total)` studies) are multi-pollutant studies.
   
   
-  * `r perc_pop_above_x_hp_micr_gm` percent of the world population, or `r tot_pop_above_x_hp_micr_gm_millions` million people, live in areas where the annual average PM~2.5~ pollution is greater than `r pm2.5_thresh_highly_polluted` µg/m³. But, only `r perc_epi_studies_in_hp` percent (`r epi_num_studies_in_hp` PM~2.5~ specific studies) of the total studies, have been performed in these highly polluted parts of the world. These highly polluted areas are areas where the average PM~2.5~ pollution is at least `r round(pm2.5_thresh_highly_polluted/who_pm2.5_guideline, 1)` times the WHO PM~2.5~ safe guideline of `r who_pm2.5_guideline` µg/m³.
+  * `r perc_pop_above_x_hp_micr_gm` percent of the world population, or `r tot_pop_above_x_hp_micr_gm_millions` million people, live in areas where the annual average PM~2.5~ pollution is greater than `r pm2.5_thresh_highly_polluted` µg/m³. But, only `r perc_epi_studies_in_hp` percent (`r epi_num_studies_in_hp` PM~2.5~ specific studies) of the total PM~2.5~ studies, have been performed in these highly polluted parts of the world. These highly polluted areas are areas where the average PM~2.5~ pollution is at least `r round(pm2.5_thresh_highly_polluted/who_pm2.5_guideline, 1)` times the WHO PM~2.5~ safe guideline of `r who_pm2.5_guideline` µg/m³.
 
 
-  * Approximately `r perc_pop_above_x_sp_micr_gm` percent of the world population (`r tot_pop_above_x_sp_micr_gm_millions` million people) live in the most severely polluted parts of the world, where annual average PM~2.5~ pollution is upwards of `r pm2.5_thresh_severly_polluted` µg/m³ (at least `r round(pm2.5_thresh_severly_polluted/who_pm2.5_guideline, 1)` times the WHO safe guideline). In these most severely polluted parts of the world, `r epi_num_studies_in_sp` AQ epi studies have been performed .
+  * Approximately `r perc_pop_above_x_sp_micr_gm` percent of the world population (`r tot_pop_above_x_sp_micr_gm_millions` million people) live in the most severely polluted parts of the world, where annual average PM~2.5~ pollution is upwards of `r pm2.5_thresh_severly_polluted` µg/m³ (at least `r round(pm2.5_thresh_severly_polluted/who_pm2.5_guideline, 1)` times the WHO safe guideline). In these most severely polluted parts of the world, `r epi_num_studies_in_sp` PM~2.5~ AQ epi studies have been performed .
 
 
-  * Most of the AQ epi studies (`r perc_epi_studies_in_lp` percent of the total, or `r epi_num_studies_in_lp` studies) performed so far, are concentrated in areas where the average PM~2.5~ concentration is in the 0-25 µg/m³ range. People living in these areas (`r perc_pop_below_x_lp_micr_gm` percent of the world population) are breathing air that is much less polluted relative to the people living in the most polluted parts of the world (as seen above). But, even in the 0-25 µg/m³ bucket, anyone living above `r who_pm2.5_guideline` µg/m³, is out of compliance with the WHO PM~2.5~ guideline.
+  * Most of the PM~2.5~ AQ epi studies (`r perc_epi_studies_in_lp` percent of the total number of PM~2.5~ studies, or `r epi_num_studies_in_lp` studies) performed so far, are concentrated in areas where the average PM~2.5~ concentration is in the 0-25 µg/m³ range. People living in these areas (`r perc_pop_below_x_lp_micr_gm` percent of the world population) are breathing air that is much less polluted relative to the people living in the most polluted parts of the world (as seen above). But, even in the 0-25 µg/m³ bucket, anyone living above `r who_pm2.5_guideline` µg/m³, is out of compliance with the WHO PM~2.5~ guideline.
   
-  * Note: In making the above 2 graphs, multiple countries of a pooled study are counted as separate studies.
   
 &nbsp;
 
@@ -437,18 +440,18 @@ geographic_dist_graph <- world_shp_epi_color %>%
 
 #> Other calculations for this block of code
 
-# total number of studies performed in USA and Canada
-num_studies_usa_canada <- epi_country_count %>% 
+# total number times USA and Canada have been included in a study
+num_times_usa_canada_included <- epi_country_count %>% 
   filter(country %in% c("United States", "Canada")) %>%
   summarise(total_studies = sum(n, na.rm = TRUE)) %>%
   unlist()
 
-# total number of studies performed in USA and Canada and Europe
-num_studies_usa_canada_europe <- epi %>% 
+# total number of times USA, Canada and Europe have been included in a study
+num_times_usa_canada_europe_included <- epi %>% 
   filter((country %in% c("Canada", "USA")) | (continent %in% c("Europe"))) %>% 
   nrow()
 
-# areas other than USA, Canada and Europe
+# Countries other than these: USA, Canada and the ones that are included in Europe that have been included in a study
 areas_other_than_usa_canada_europe <- epi %>% 
   filter((country %notin% c("Canada", "USA")) & (continent %notin% c("Europe"))) %>%
   select(country) %>%
@@ -456,45 +459,48 @@ areas_other_than_usa_canada_europe <- epi %>%
   unlist() %>%
   as.vector()
 
-# continent order list (order variable: number of studies)
-continent_wise_study_summary <- epi %>% 
-  group_by(continent) %>% 
-  summarise(count = n(), average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
-  slice_max(count, n = 6) %>%
-  mutate(prop_studies = round((count/sum(count, na.rm = TRUE))*100, 1))
+# number of times a continent have been included in a study
+continent_wise_study_summary <- epi %>%
+  group_by(paper_uid, continent) %>% 
+  summarise(count = n()) %>%
+  ungroup() %>%
+  select(continent) %>%
+  count(continent) %>%
+  slice_max(n, n = 6) %>%
+  mutate(prop_studies = round((n/sum(n, na.rm = TRUE))*100, 1))
 
-# total number of studies in South America
-num_studies_south_america <- epi %>%
+# total number of times South America was included in a study
+num_times_sa_included <- continent_wise_study_summary %>%
   filter(continent == "South America") %>%
-  nrow()
+  select(n) %>%
+  unlist() %>%
+  as.vector()
 
-# total number of studies in Oceania
-num_studies_oceania <- epi %>%
+# total number of times Oceania was included in a study
+num_times_oceania_included <- continent_wise_study_summary %>%
   filter(continent == "Oceania") %>%
-  nrow()
+  select(n) %>%
+  unlist() %>%
+  as.vector()
 
-# total number of studies in Africa
-num_studies_africa <- epi %>%
+# total number of studies Africa has been included in a study
+num_times_africa_included <- continent_wise_study_summary %>%
   filter(continent == "Africa") %>%
-  nrow()
+  select(n) %>%
+  unlist() %>%
+  as.vector()
 
 # plot geographic distribution
 geographic_dist_graph
 
 ```
 
-  * `r num_studies_usa_canada` (`r round((num_studies_usa_canada/nrow(epi))*100, 1)` percent) studies were performed in the USA and Canada. 
+  * Of the total number of times any given country is included in any given study, USA and Canada together have been included `r num_times_usa_canada_included` times (`r round((num_times_usa_canada_included/sum(epi_country_count$n, na.rm = TRUE))*100, 1)` percent of total). 
   
+  * USA, Canada and Europe combined have been included `r num_times_usa_canada_europe_included` times (`r round((num_times_usa_canada_europe_included/sum(epi_country_count$n, na.rm = TRUE))*100, 1)` percent of total). Other countries that have been included at some point in a AQ epi study are: `r areas_other_than_usa_canada_europe`.
   
-  * `r num_studies_usa_canada_europe` studies (`r round((num_studies_usa_canada_europe/nrow(epi))*100, 1)` percent) were performed in the USA, Canada and Europe combined. Remaining `r 100 - round((num_studies_usa_canada_europe/nrow(epi))*100, 1)` percent studies are scattered across `r areas_other_than_usa_canada_europe`.
+  * Of the total number of times, a given continent has been included in any given study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times. Closely following `r continent_wise_study_summary$continent[1]`, are `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` which have been included in a study `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r continent_wise_study_summary$continent[4]` has only been included `r continent_wise_study_summary$prop_studies[4]` percent of times, while `r continent_wise_study_summary$continent[5]` and `r continent_wise_study_summary$continent[6]` have been included the least number of studies (`r continent_wise_study_summary$prop_studies[5]` and `r continent_wise_study_summary$prop_studies[6]` percent respectively).
   
-  
-  * In terms of the total number of studies conducted, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents (with `r continent_wise_study_summary$prop_studies[1]` percent of total studies). This is closely followed by `r continent_wise_study_summary$continent[2]` (with `r continent_wise_study_summary$prop_studies[2]` percent of total studies) and `r continent_wise_study_summary$continent[3]`  (with `r continent_wise_study_summary$prop_studies[3]` percent of total studies). `r continent_wise_study_summary$continent[4:6]` combined, have only seen `r num_studies_south_america + num_studies_oceania + num_studies_africa` studies.
-  
-  * Note: In making the above graph, multiple countries of a pooled study are counted as separate studies. Also, the above graph represents all studies (i.e. includes all pollutants and is not just PM~2.5~ specific).
-  
-  * **Note for discussion: In the total count of studies, each country in a multi-country is counted as separate studies.**
-
 &nbsp;
   
 ### AQ Epi studies over time
@@ -524,9 +530,6 @@ dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
 
   * Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
   
-  * **Note for discussion: In making the above graph, multiple countries of a pooled study are *not* counted separately, i.e. a pooled multi-country study is counted as a single study. Also, the above graph represents all studies (i.e. includes all pollutants and is not just PM~2.5~ specific).**
-
-
 
 ### Distribution of duration of study by continent
 
@@ -552,7 +555,10 @@ dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
 
 # adding an order panel 
 continent_wise_study_duration_graph <- epi %>%
-  dplyr::filter(continent != "NA", !is.na(continent)) %>%
+  dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
+  group_by(paper_uid, continent) %>%
+  summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
+  ungroup() %>%
   mutate(order_continent = ifelse(continent == "Asia", 1, 0), 
          order_continent = ifelse(continent == "Europe", 2, order_continent), 
          order_continent = ifelse(continent == "North America", 3, order_continent), 
@@ -560,7 +566,7 @@ continent_wise_study_duration_graph <- epi %>%
          order_continent = ifelse(continent == "Africa", 5, order_continent),
          order_continent = ifelse(continent == "Oceania", 6, order_continent)) %>% 
   ggplot() +
-  geom_histogram(mapping = aes(x = study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
+  geom_histogram(mapping = aes(x = average_study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
     labs(x = "Study Duration") +
   ggtitle("Epi Studies Duration Distribution (Continent Wise): Histogram") +
   scale_x_continuous(breaks = seq(0, 40, 10)) +
@@ -575,12 +581,24 @@ continent_wise_study_duration_graph <- epi %>%
 # long term study threshold
 long_term_study_duration <- 25
 
-# countries with studies greater than x (long_term) years of study duration
+# number of "really long term studies"
+num_really_long_term_studies <- epi %>%
+  group_by(paper_uid) %>%
+  summarise(mean_duration = mean(study_duration, na.rm = TRUE)) %>%
+  filter(mean_duration > long_term_study_duration) %>%
+  nrow()
+  
+
+# continents that have seen studies greater than x (long_term) years of study duration
 epi_long_term_studies_countries <- epi %>%
-  filter(study_duration > long_term_study_duration, study_duration != "NA", !is.na(study_duration)) %>%
-  select(country) %>%
-  unlist() %>%
-  unique() 
+  group_by(paper_uid, continent) %>%
+  summarise(mean_study_duration = mean(study_duration, na.rm = TRUE)) %>% 
+  ungroup() %>%
+  filter(mean_study_duration > long_term_study_duration, mean_study_duration != "NA", !is.na(mean_study_duration)) %>%
+  select(continent) %>%
+  count(continent) %>%
+  mutate(prop_n = round((n/sum(n, na.rm = TRUE))*100, 1)) %>%
+  slice_max(prop_n, n = 6)
 
 
 # continent order list (order variable: number of studies): code present in the geographical distribution map block.
@@ -591,33 +609,36 @@ continent_wise_study_duration_graph
 
 ```
 
-  * All of the “really” long term studies (> `r long_term_study_duration` years) ever conducted are concentrated only in `r epi_long_term_studies_countries`.
+* In total, `r num_really_long_term_studies` "really" long term studies (> `r long_term_study_duration` years) have been performed. That is, `r round((num_really_long_term_studies/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE)))*100, 1)` percent of the total number of studies.
 
-  * `r continent_wise_study_summary$continent[1:3]` have seen a relatively large number of studies (across a wide range of study durations). In contrast to this, in `r continent_wise_study_summary$continent[4:6]` combined, only `r num_studies_south_america + num_studies_oceania + num_studies_africa` studies have been performed.  
+* All of the following continents have seen at least 1 really long term study: `r epi_long_term_studies_countries %>% filter(n >= 1) %>% select(continent) %>% unlist() %>% as.vector()`.
+
+* All of the following continents have seen more than 1 really long term study: `r epi_long_term_studies_countries %>% filter(n > 1) %>% select(continent) %>% unlist() %>% as.vector()`.
+
+* In all of the really long term studies (including both multi-country/continent and single-country), i.e. ones that have a study duration of > `r long_term_study_duration` years - `r epi_long_term_studies_countries$continent[1]` was included `r epi_long_term_studies_countries$n[1]` times in those studies (`r epi_long_term_studies_countries$prop_n[1]` percent of the total number of times any given continent is included in any given study). 
+
+* Similarly, `r epi_long_term_studies_countries$continent[2]` has been included `r epi_long_term_studies_countries$n[2]` times in such long term studies (`r epi_long_term_studies_countries$prop_n[2]` percent of the total number of times any given continent is included in any given study).
 
 
- * **Note for discussion: In making the above graph, multiple countries of a pooled study are counted separately. Also, the above graph represents all studies (i.e. includes all pollutants and is not just PM~2.5~ specific).**
 
 ### Major takeaways
 
-  * `r round((num_studies_usa_canada/nrow(epi))*100, 1)` percent of the total number of studies are concentrated in the USA and Canada alone. 
+* Of the total number of times any given country is included in any given study, USA and Canada together have been included `r num_times_usa_canada_included` times (`r round((num_times_usa_canada_included/sum(epi_country_count$n, na.rm = TRUE))*100, 1)` percent of total).
+
+* Of the total number of times, a given continent has been included in any given study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times. Closely following `r continent_wise_study_summary$continent[1]`, are `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` which have been included in a study `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r continent_wise_study_summary$continent[4]` has only been included `r continent_wise_study_summary$prop_studies[4]` percent of times, while `r continent_wise_study_summary$continent[5]` and `r continent_wise_study_summary$continent[6]` have been included the least number of studies (`r continent_wise_study_summary$prop_studies[5]` and `r continent_wise_study_summary$prop_studies[6]` percent respectively).
+
+* Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
+
+* In total, 5 “really” long term studies (> 25 years) have been performed. That is, 4.9 percent of the total number of studies.
+
+* All of the following continents have seen at least 1 really long term study: `r epi_long_term_studies_countries %>% filter(n >= 1) %>% select(continent) %>% unlist() %>% as.vector()`. While, only `r epi_long_term_studies_countries %>% filter(n > 1) %>% select(continent) %>% unlist() %>% as.vector()` have seen more than 1 really long term study.
 
 
-  * Aproximately `r perc_pop_above_x_sp_micr_gm` percent of the world population, or `r tot_pop_above_x_sp_micr_gm_millions` million people live in areas where PM~2.5~ pollution concentrations are upwards of `r pm2.5_thresh_severly_polluted` µg/m³ (at least `r pm2.5_thresh_severly_polluted/who_pm2.5_guideline` times the WHO safe guideline). In these parts of the world, `r epi_num_studies_in_sp` AQ epi studies have been performed.
-
-
-  * All of the “really” long term studies (> `r long_term_study_duration` years) ever conducted are concentrated only in `r epi_long_term_studies_countries`.
-
-
-  * `r continent_wise_study_summary$continent[4:6]` combined, have only seen `r num_studies_south_america + num_studies_oceania + num_studies_africa` studies.
-
-
-  * In the last decade, there has been a noticeable increase in the total number of AQ epi studies performed. But, most of these new studies are concentrated in the low pollution concentration ranges of 0-25 µg/m³. The high pollution concentration ranges remain poorly explored.
 
 
 ### Conclusion
 
-All studies included in this analysis point to the same overall picture:air pollution is a serious health threat. The existing state of scientific literature on air pollution and health is clear that air pollution’s impact on health is well-established and taking action in a polluted environment should not be delayed in order to complete multi-year large cohort epidemiological studies in an area, even if there has not been a prior study in that particular geography. That said, it is important for the field of air quality epidemiolgy to understand the contours of its current research landscape to most effectively identify directions for future research and deploy limited resources. 
+All studies included in this analysis point to the same overall picture:air pollution is a serious health threat. The existing state of scientific literature on air pollution and health is clear that air pollution’s impact on health is well-established and taking action in a polluted environment should not be delayed in order to complete multi-year large sample (> `r min_sample_size`) epidemiological studies in an area, even if there has not been a prior study in that particular geography. That said, it is important for the field of air quality epidemiolgy to understand the contours of its current research landscape to most effectively identify directions for future research and deploy limited resources. 
 
 &nbsp;
 
@@ -626,7 +647,7 @@ All studies included in this analysis point to the same overall picture:air poll
 
 Through a comprehensive and ongoing* literature review, we are making an attempt at creating an exhaustive public listing of all the epidemiological studies out there (that we could find) that examine the relationship between PM~2.5~ and Life Expectancy/Mortality. 
 
-For each study, we record data on key defining features, such as: Geography, Cohort Size, Study Duration, PM~2.5~ exposure range, etc. Then we used [this](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) analysis dataset to carry out a meta-analysis, results of which are detailed in the Results section above.
+For each study, we record data on key defining features, such as: Geography, Sample Size, Study Duration, PM~2.5~ exposure range, etc. Then we used [this](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) analysis dataset to carry out a meta-analysis, results of which are detailed in the Results section above.
 
 We are seeking to make this analysis as current, complete and error-free as possible and view it as a continual work in progress. We would welcome the air quality community’s any comments, corrections, andor suggestions. Please contact **aqli-epic@uchicago.edu** or leave a comment in this GitHub repository. 
 
@@ -689,11 +710,13 @@ To further explore these graphs and more in an interactive setup, visit the [AQ 
 epi_long <- epi %>% 
   filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
   pivot_longer(cols = contains("pm2.5_exposure"), names_to =  "exposure_type", values_to = "exposure_value") %>%
-  select(exposure_type, exposure_value) %>%
+  select(paper_uid, exposure_type, exposure_value) %>%
   filter(!is.na(exposure_value)) 
 
 # density plot
 epi_long %>%
+  group_by(paper_uid, exposure_type) %>%
+  summarise(exposure_value = ifelse(exposure_type == "pm2.5_exposure_ll", min(exposure_value, na.rm = TRUE), max(exposure_value, na.rm = TRUE))) %>%
   ggplot() +
   geom_density(mapping = aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
   labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
@@ -701,6 +724,8 @@ epi_long %>%
 
 # histogram plot
 epi_long %>%
+  group_by(paper_uid, exposure_type) %>%
+  summarise(exposure_value = ifelse(exposure_type == "pm2.5_exposure_ll", min(exposure_value, na.rm = TRUE), max(exposure_value, na.rm = TRUE))) %>%
   ggplot() +
   geom_histogram(mapping = aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") +
   labs(x = expression(paste("PM2.5 concentration (", mu, "g", "/", m^3, ")"))) +
@@ -718,25 +743,25 @@ epi_long %>%
 #> Different countries in a pooled study should be counted separately. As of now this is PM2.5 specific, but can be generalized in the future.
 
 #> (5) age distribution plot (LL and UL) using the long dataset (density plot)
-epi %>% 
-  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, (!is.na(cohort_age_ll) | !is.na(cohort_age_ul) | cohort_age_ll != "NA" | cohort_age_ul != "NA")) %>%
+epi_long_age_dist <- epi %>% 
+  filter(((!is.na(cohort_age_ll)) | (cohort_age_ll != "NA")) & ((!is.na(cohort_age_ul)) | (cohort_age_ul != "NA"))) %>%
   pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
-  select(age_dist_type, age_value) %>%
-  filter(!is.na(age_value)) %>%
+  select(paper_uid, age_dist_type, age_value) %>%
+  filter(!is.na(age_value)) 
+
+epi_long_age_dist %>%
   ggplot() +
   geom_density(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.6, color = "black") +
   labs(x = "Age") +
   theme_tufte()
 
 #> (6) age distribution plot (LL and UL) using the long dataset (histogram plot)
-epi %>% 
-  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, (!is.na(cohort_age_ll) | !is.na(cohort_age_ul) | cohort_age_ll != "NA" | cohort_age_ul != "NA")) %>%
-  pivot_longer(cols = contains("cohort_age"), names_to =  "age_dist_type", values_to = "age_value") %>%
-  select(age_dist_type, age_value) %>%
-  filter(!is.na(age_value)) %>%
+epi_long_age_dist %>%
   ggplot() +
   geom_histogram(mapping = aes(x = age_value, fill = age_dist_type), alpha = 0.5, position = "identity", color = "white") +
-  labs(x = "Age") 
+  labs(x = "Age") +
+   theme_tufte()
+
 
 ```
 
@@ -750,14 +775,14 @@ epi %>%
 
 #> (7) Country Wise Cohort Size density plot
 epi %>%
-    filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, !is.na(cohort_size), cohort_size != "NA") %>%
+    filter(cohort_size != "NA", !is.na(cohort_size)) %>%
   ggplot() +
   geom_density(mapping = aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
   theme_tufte()
 
 #> (8) Country wise Cohort Size histogram plot
 epi %>%
-  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, !is.na(cohort_size), cohort_size != "NA") %>%
+  filter(cohort_size != "NA", !is.na(cohort_size)) %>%
   ggplot() +
   geom_histogram(mapping = aes(x = log10(cohort_size), fill = country), alpha = 0.5, position = "identity") +
   theme_tufte()
@@ -774,7 +799,7 @@ epi %>%
 
 #> (9) Country wise Study duration density plot
 epi %>%
-  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, !is.na(study_duration), study_duration != "NA") %>%
+  filter(study_duration != "NA", !is.na(study_duration)) %>%
   ggplot() +
   geom_density(mapping = aes(x = study_duration, fill = country, alpha = 0.5)) +
   theme_tufte()
@@ -782,7 +807,7 @@ epi %>%
 #> Country Wise Study Duration histogram
 
 epi %>%
-  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0, !is.na(study_duration), study_duration != "NA") %>%
+  filter(study_duration != "NA", !is.na(study_duration)) %>%
   ggplot() +
   geom_histogram(mapping = aes(x = study_duration, fill = country, alpha = 0.5), position = "identity", alpha = 0.5, color = "white", binwidth = 1) +
   theme_tufte() +
@@ -797,6 +822,4 @@ epi %>%
 
 ```
 
-
-#
 
