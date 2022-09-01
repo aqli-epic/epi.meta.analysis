@@ -42,22 +42,11 @@ library(shinydashboard)
 
 
 ```{r setup, message=FALSE, warning=FALSE, include=FALSE}
+
 #> read in datasets 
-
-# pooled study branch
-
-# global variables
-
-who_pm2.5_guideline <- 5
 
 # epi studies analysis raw sheet
 epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
-
-# AQLI color file
-aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv") 
-
-# global operations
-`%notin%` <- Negate(`%in%`)
 
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
@@ -70,9 +59,22 @@ epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
 epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
 epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
-#> add useful columns and filter out some studies (e.g. pooled studies, meta analysis, other parameter based filtering)
-epi <- epi %>% 
-  mutate(study_duration = study_end_year - study_start_year)
+# AQLI color file
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
+
+# getting a country continent file
+country_continent <- read_csv("./data-raw/pm2.5_distribution/country_continent.csv")
+
+# adding a continent column to the color file
+aqli_color <- aqli_color %>%
+  left_join(country_continent, by = "country") %>%
+  select(objectid_color:iso_alpha3, continent, everything())
+
+# global operations
+`%notin%` <- Negate(`%in%`)
+
+# global variables
+who_pm2.5_guideline <- 5
 
 #> setting report parameters
 min_sample_size <- 1000
@@ -83,7 +85,13 @@ epi <- epi %>%
   mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
   filter(cohort_size > min_sample_size, study_duration > min_study_duration_in_years)
 
- 
+# continent list
+continent_list <- c("Asia", "Africa", "North America", "South America", "Europe", "Oceania")
+
+# missing continents
+missing_continents_logical <- continent_list %notin% unique(epi$continent)
+missing_continents <- continent_list[missing_continents_logical]
+
 #> Calculations needed for all sections above the "Results section".
 
 # percent of population not in compliance with the WHO guideline
@@ -135,9 +143,9 @@ The burden of air pollution across the world is also not uniform. While `r perce
   
   * In cases where the same cohort is studied by different research groups at different point in time/using different methods: we have included and counted all of those studies as separate unique studies in the analysis below.
   
-  * Papers studying the health effects of pollution segregated by sectors (source apportionment type studies) are excluded from this analysis. 
+  * Papers studying the health effects of pollution segregated by sectors (source apportionment type studies), regions (example, Rural v/s Urban), season (Winter v/s Summer) are excluded from this analysis. 
   
-  * All papers studying the measure the impact of pollutants on DALY's, have not been included in this analysis.
+  * All papers studying the measure the impact of pollutants on DALY's, are excluded from this analysis.
   
 
 
@@ -146,7 +154,7 @@ The burden of air pollution across the world is also not uniform. While `r perce
 
   * In papers, where the minimum PM~2.5~ concentration was not reported, we have assumed the lowest available percentile data available on PM2.5 concentration as the minimum concentration.
   
-  * * In many papers, only one of the mean PM~2.5~ or PM~2.5~ range is reported but not both. In these cases, wherever the data is not available (whether it is mean PM2.5 or PM2.5 range) we have recorded a NA. Apart from this, anywhere we couldn't find data, we have recorded a NA.
+  * In many papers, only one of the mean PM~2.5~ or PM~2.5~ range is reported but not both. In these cases, wherever the data is not available (whether it is mean PM2.5 or PM2.5 range) we have recorded a NA. Apart from this, anywhere we couldn't find data, we have recorded a NA.
 
 
   * In multi-pollutant studies where different pollutants have been studied over different periods of time, we have chosen the specific time period that corresponds to the PM~2.5~ pollutant (in cases where we PM~2.5~ is not present, we have recorded the time period corresponding to one of the other pollutants).
@@ -183,8 +191,9 @@ mean_pm2.5_country_wise_graph <- epi %>%
   ggplot() +
   geom_density(mapping = aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
   labs(x = expression(paste("Mean PM2.5 concentration (", mu, "g", "/", m^3, ")")), 
-       caption = "*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries.") +
-  theme_tufte()
+       caption = str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+  theme_hc() +
+  theme(plot.caption = element_text(hjust = 0))
 
 #> PM2.5 exposure range and population distribution
 
@@ -242,10 +251,12 @@ pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
   scale_y_continuous(breaks = seq(0, 100, 10)) +
   scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) + 
   labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "", 
-       caption = "*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries.") +
+       caption = str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 17) +
   theme_hc() +
   theme(axis.line.y = element_line(color = "black"), 
-        axis.line.x = element_line(color = "black"))
+        axis.line.x = element_line(color = "black"), 
+        plot.caption = element_text(size = 8, hjust = 0), 
+        plot.caption.position = "plot")
 
 
 #> other calculations for this block of code
@@ -440,15 +451,16 @@ geographic_dist_graph <- world_shp_epi_color %>%
 
 #> Other calculations for this block of code
 
-# total number times USA and Canada have been included in a study
-num_times_usa_canada_included <- epi_country_count %>% 
-  filter(country %in% c("United States", "Canada")) %>%
-  summarise(total_studies = sum(n, na.rm = TRUE)) %>%
-  unlist()
-
+# Of all AQ epi studies included in this analysis how many included populations in either the US or Canada or both
+num_times_usa_canada_included <- epi %>% 
+  filter(country %in% c("USA", "Canada")) %>%
+  distinct(paper_uid, .keep_all = TRUE) %>%
+  nrow()
+  
 # total number of times USA, Canada and Europe have been included in a study
 num_times_usa_canada_europe_included <- epi %>% 
   filter((country %in% c("Canada", "USA")) | (continent %in% c("Europe"))) %>% 
+  distinct(paper_uid, .keep_all = TRUE) %>%
   nrow()
 
 # Countries other than these: USA, Canada and the ones that are included in Europe that have been included in a study
@@ -495,11 +507,12 @@ geographic_dist_graph
 
 ```
 
-  * Of the total number of times any given country is included in any given study, USA and Canada together have been included `r num_times_usa_canada_included` times (`r round((num_times_usa_canada_included/sum(epi_country_count$n, na.rm = TRUE))*100, 1)` percent of total). 
+  *  `r round((num_times_usa_canada_included/(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()))*100, 1)` percent of all AQ epi studies (`r num_times_usa_canada_included` studies) included in this analysis included populations in either the US or Canada or both.
   
-  * USA, Canada and Europe combined have been included `r num_times_usa_canada_europe_included` times (`r round((num_times_usa_canada_europe_included/sum(epi_country_count$n, na.rm = TRUE))*100, 1)` percent of total). Other countries that have been included at some point in a AQ epi study are: `r areas_other_than_usa_canada_europe`.
+  * USA, Canada and Europe (or some combination of them) were focus countries in `r round((num_times_usa_canada_europe_included/(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()))*100, 1)` percent of all AQ epi studies (`r num_times_usa_canada_europe_included` studies). Other countrie(s) that have been included in an AQ epi study: `r areas_other_than_usa_canada_europe`.
   
-  * Of the total number of times, a given continent has been included in any given study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times. Closely following `r continent_wise_study_summary$continent[1]`, are `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` which have been included in a study `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r continent_wise_study_summary$continent[4]` has only been included `r continent_wise_study_summary$prop_studies[4]` percent of times, while `r continent_wise_study_summary$continent[5]` and `r continent_wise_study_summary$continent[6]` have been included the least number of studies (`r continent_wise_study_summary$prop_studies[5]` and `r continent_wise_study_summary$prop_studies[6]` percent respectively).
+  * Of the total number of times a given continent's population has been included in any given AQ epi study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times (all due to studies in the US or Canada). Closely following North America, populations in `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` have been included in AQ epi studies `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r missing_continents` have seen 0 long term (> `r min_study_duration_in_years` year), large (>`r min_sample_size` people in the sample) AQ epi study.
+  
   
 &nbsp;
   
@@ -520,7 +533,7 @@ dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
   ggplot() +
   geom_line(mapping = aes(x = publishing_year, y = total_studies), lwd = 1.2, color = "cornflowerblue") +
   labs(x = "Year", y = "Total Number of Studies") +
-  theme_minimal()
+  theme_hc()
 
 ```
 
@@ -553,8 +566,13 @@ dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
 
 #> Histogram of study duration
 
-# adding an order panel 
-continent_wise_study_duration_graph <- epi %>%
+
+
+#> adding an order panel and also dummy panels (for those cases in which we are looking at a subset of a dataset that does not include certain continents).
+
+
+if(sum(missing_continents_logical) == 0){
+  continent_wise_study_duration_graph <- epi %>%
   dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
   group_by(paper_uid, continent) %>%
   summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
@@ -575,6 +593,39 @@ continent_wise_study_duration_graph <- epi %>%
    facet_wrap(~fct_reorder(continent, order_continent), nrow = 1) +
   theme(axis.line.y = element_line(color = "black"), 
         axis.line.x = element_line(color = "black")) 
+} else{
+  for(i in 1:length(missing_continents)){
+    if(i == 1){
+     continent_wise_study_duration_graph <- epi %>%
+  dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
+  group_by(paper_uid, continent) %>%
+  summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
+  ungroup() %>%
+     add_row(continent = missing_continents[i]) 
+    } else{
+      continent_wise_study_duration_graph <- continent_wise_study_duration_graph %>%
+     add_row(continent = missing_continents[i])
+    }
+   
+  }
+  continent_wise_study_duration_graph <- continent_wise_study_duration_graph %>%
+  mutate(order_continent = ifelse(continent == "Asia", 1, 0), 
+         order_continent = ifelse(continent == "Europe", 2, order_continent), 
+         order_continent = ifelse(continent == "North America", 3, order_continent), 
+         order_continent = ifelse(continent == "South America", 4, order_continent), 
+         order_continent = ifelse(continent == "Africa", 5, order_continent),
+         order_continent = ifelse(continent == "Oceania", 6, order_continent)) %>% 
+  ggplot() +
+  geom_histogram(mapping = aes(x = average_study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
+    labs(x = "Study Duration") +
+  ggtitle("Epi Studies Duration Distribution (Continent Wise): Histogram") +
+  scale_x_continuous(breaks = seq(0, 40, 10)) +
+  theme_hc() + 
+  theme(legend.title = element_blank()) +
+   facet_wrap(~fct_reorder(continent, order_continent), nrow = 1) +
+  theme(axis.line.y = element_line(color = "black"), 
+        axis.line.x = element_line(color = "black")) 
+}
 
 #> calculations relevant for this block of code
 
@@ -600,6 +651,22 @@ epi_long_term_studies_countries <- epi %>%
   mutate(prop_n = round((n/sum(n, na.rm = TRUE))*100, 1)) %>%
   slice_max(prop_n, n = 6)
 
+# total population in missing continents combined
+tot_pop_africa_missing_continents <- aqli_color %>%
+  filter(continent %in% missing_continents) %>%
+  summarise(tot_pop = sum(population, na.rm = TRUE)) %>%
+  unlist() %>%
+  as.numeric() 
+
+tot_pop_africa_missing_continents_in_billions <- round(tot_pop_africa_missing_continents/1000000000, 1)
+
+# total world population
+world_population <- aqli_color %>%
+  summarise(total_population = sum(population, na.rm = TRUE)) %>%
+  unlist() %>%
+  as.numeric()
+
+
 
 # continent order list (order variable: number of studies): code present in the geographical distribution map block.
 
@@ -623,16 +690,17 @@ continent_wise_study_duration_graph
 
 ### Major takeaways
 
-* Of the total number of times any given country is included in any given study, USA and Canada together have been included `r num_times_usa_canada_included` times (`r round((num_times_usa_canada_included/sum(epi_country_count$n, na.rm = TRUE))*100, 1)` percent of total).
+* `r round((num_times_usa_canada_included/(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()))*100, 1)` percent of all AQ epi studies (`r num_times_usa_canada_included` studies) included in this analysis included populations in either the US or Canada or both.
 
-* Of the total number of times, a given continent has been included in any given study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times. Closely following `r continent_wise_study_summary$continent[1]`, are `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` which have been included in a study `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r continent_wise_study_summary$continent[4]` has only been included `r continent_wise_study_summary$prop_studies[4]` percent of times, while `r continent_wise_study_summary$continent[5]` and `r continent_wise_study_summary$continent[6]` have been included the least number of studies (`r continent_wise_study_summary$prop_studies[5]` and `r continent_wise_study_summary$prop_studies[6]` percent respectively).
+* Of the total number of times a given continent's population has been included in any given AQ epi study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times (all due to studies in the US or Canada). Closely following North America, populations in `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` have been included in AQ epi studies `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r missing_continents` have seen 0 long term (> `r min_study_duration_in_years` year), large (>`r min_sample_size` people in the sample) AQ epi study.
+  
+* There have been no large (> `r min_study_duration_in_years` year) or long (>`r min_sample_size` people in the sample) PM epi studies that were performed in `r missing_continents`, with a combined population of `r tot_pop_africa_missing_continents_in_billions` billion, `r round((tot_pop_africa_missing_continents/world_population)*100, 1)` percent of the Earth's total human population.
 
 * Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
 
-* In total, 5 “really” long term studies (> 25 years) have been performed. That is, 4.9 percent of the total number of studies.
+* In total, `r num_really_long_term_studies` "really" long term studies (> `r long_term_study_duration` years) have been performed. That is, `r round((num_really_long_term_studies/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE)))*100, 1)` percent of the total number of studies.
 
-* All of the following continents have seen at least 1 really long term study: `r epi_long_term_studies_countries %>% filter(n >= 1) %>% select(continent) %>% unlist() %>% as.vector()`. While, only `r epi_long_term_studies_countries %>% filter(n > 1) %>% select(continent) %>% unlist() %>% as.vector()` have seen more than 1 really long term study.
-
+* All of the following continents have seen at least 1 really long term study: `r epi_long_term_studies_countries %>% filter(n >= 1) %>% select(continent) %>% unlist() %>% as.vector()`.
 
 
 

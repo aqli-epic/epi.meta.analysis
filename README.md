@@ -94,11 +94,12 @@ variation in the quality of air one breathes.
     in the analysis below.
 
 -   Papers studying the health effects of pollution segregated by
-    sectors (source apportionment type studies) are excluded from this
+    sectors (source apportionment type studies), regions (example, Rural
+    v/s Urban), season (Winter v/s Summer) are excluded from this
     analysis.
 
 -   All papers studying the measure the impact of pollutants on DALY’s,
-    have not been included in this analysis.
+    are excluded from this analysis.
 
 ## Other important points
 
@@ -106,11 +107,11 @@ variation in the quality of air one breathes.
     reported, we have assumed the lowest available percentile data
     available on PM2.5 concentration as the minimum concentration.
 
--   -   In many papers, only one of the mean PM<sub>2.5</sub> or
-        PM<sub>2.5</sub> range is reported but not both. In these cases,
-        wherever the data is not available (whether it is mean PM2.5 or
-        PM2.5 range) we have recorded a NA. Apart from this, anywhere we
-        couldn’t find data, we have recorded a NA.
+-   In many papers, only one of the mean PM<sub>2.5</sub> or
+    PM<sub>2.5</sub> range is reported but not both. In these cases,
+    wherever the data is not available (whether it is mean PM2.5 or
+    PM2.5 range) we have recorded a NA. Apart from this, anywhere we
+    couldn’t find data, we have recorded a NA.
 
 -   In multi-pollutant studies where different pollutants have been
     studied over different periods of time, we have chosen the specific
@@ -204,21 +205,22 @@ variation in the quality of air one breathes.
 
 <img src="man/figures/README-geographic_dist_studies_calcs-1.png" width="100%" />
 
--   Of the total number of times any given country is included in any
-    given study, USA and Canada together have been included 41 times
-    (60.3 percent of total).
+-   60.3 percent of all AQ epi studies (41 studies) included in this
+    analysis included populations in either the US or Canada or both.
 
--   USA, Canada and Europe combined have been included 53 times (77.9
-    percent of total). Other countries that have been included at some
-    point in a AQ epi study are: China, Japan, Hong Kong, Taiwan.
+-   USA, Canada and Europe (or some combination of them) were focus
+    countries in 77.9 percent of all AQ epi studies (53 studies). Other
+    countrie(s) that have been included in an AQ epi study: China,
+    Japan, Hong Kong, Taiwan.
 
--   Of the total number of times, a given continent has been included in
-    any given study, North America dominates the rest of the continents
-    and has been included 60.3 percent of times. Closely following North
-    America, are Asia and Europe which have been included in a study
-    22.1 and 17.6 percent of times respectively. NA has only been
-    included NA percent of times, while NA and NA have been included the
-    least number of studies (NA and NA percent respectively).
+-   Of the total number of times a given continent’s population has been
+    included in any given AQ epi study, North America dominates the rest
+    of the continents and has been included 60.3 percent of times (all
+    due to studies in the US or Canada). Closely following North
+    America, populations in Asia and Europe have been included in AQ epi
+    studies 22.1 and 17.6 percent of times respectively. Africa, South
+    America, Oceania have seen 0 long term (\> 1 year), large (\>1000
+    people in the sample) AQ epi study.
 
  
 
@@ -261,27 +263,31 @@ variation in the quality of air one breathes.
 
 ### Major takeaways
 
--   Of the total number of times any given country is included in any
-    given study, USA and Canada together have been included 41 times
-    (60.3 percent of total).
+-   60.3 percent of all AQ epi studies (41 studies) included in this
+    analysis included populations in either the US or Canada or both.
 
--   Of the total number of times, a given continent has been included in
-    any given study, North America dominates the rest of the continents
-    and has been included 60.3 percent of times. Closely following North
-    America, are Asia and Europe which have been included in a study
-    22.1 and 17.6 percent of times respectively. NA has only been
-    included NA percent of times, while NA and NA have been included the
-    least number of studies (NA and NA percent respectively).
+-   Of the total number of times a given continent’s population has been
+    included in any given AQ epi study, North America dominates the rest
+    of the continents and has been included 60.3 percent of times (all
+    due to studies in the US or Canada). Closely following North
+    America, populations in Asia and Europe have been included in AQ epi
+    studies 22.1 and 17.6 percent of times respectively. Africa, South
+    America, Oceania have seen 0 long term (\> 1 year), large (\>1000
+    people in the sample) AQ epi study.
+
+-   There have been no large (\> 1 year) or long (\>1000 people in the
+    sample) PM epi studies that were performed in Africa, South America,
+    Oceania, with a combined population of 1.8 billion, 23.3 percent of
+    the Earth’s total human population.
 
 -   Post 2009, there has been a noticeable increase in the overall
     volume of AQ epi studies published.
 
--   In total, 5 “really” long term studies (\> 25 years) have been
-    performed. That is, 4.9 percent of the total number of studies.
+-   In total, 7 “really” long term studies (\> 25 years) have been
+    performed. That is, 10.3 percent of the total number of studies.
 
 -   All of the following continents have seen at least 1 really long
-    term study: North America, Europe. While, only North America have
-    seen more than 1 really long term study.
+    term study: North America, Europe.
 
 ### Conclusion
 

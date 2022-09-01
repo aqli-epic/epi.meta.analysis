@@ -22,14 +22,13 @@ library(shinydashboard)
 library(DT)
 
 # global variables
-
 who_pm2.5_guideline <- 5
+
+# global operations
+`%notin%` <- Negate(`%in%`)
 
 # epi studies analysis raw sheet
 epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
-
-# AQLI color file
-aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
 
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
@@ -42,10 +41,16 @@ epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
 epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
 epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
-#> add useful columns and filter out some studies (e.g. pooled studies, meta analysis)
+# AQLI color file
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
 
-epi <- epi %>%
-  mutate(study_duration = (study_end_year - study_start_year) + 1)
+# getting a country continent file
+country_continent <- read_csv("./data-raw/pm2.5_distribution/country_continent.csv")
+
+# adding a continent column to the color file
+aqli_color <- aqli_color %>%
+  left_join(country_continent, by = "country") %>%
+  select(objectid_color:iso_alpha3, continent, everything())
 
 #> setting report parameters
 min_sample_size <- 1000
@@ -55,6 +60,13 @@ min_study_duration_in_years <- 1
 epi <- epi %>%
   mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
   filter(cohort_size > min_sample_size, study_duration > min_study_duration_in_years)
+
+# continent list
+continent_list <- c("Asia", "Africa", "North America", "South America", "Europe", "Oceania")
+
+# missing continents
+missing_continents_logical <- continent_list %notin% unique(epi$continent)
+missing_continents <- continent_list[missing_continents_logical]
 
 #> Calculations needed for all sections above the "Results section".
 

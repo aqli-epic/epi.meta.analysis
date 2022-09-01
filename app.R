@@ -93,7 +93,7 @@ ui <- shinydashboard::dashboardPage(
                               shiny::fluidRow(
                                 shinydashboard::box(
                                   width = 3,
-                                  shiny::selectInput("continent_list", "Continents", choices = epi %>% dplyr::filter(!is.na(continent)) %>% dplyr::select(continent) %>% unlist() %>% unique(), multiple = TRUE, selected = "North America"),
+                                  shiny::selectInput("continent_list", "Continents", choices = continent_list, multiple = TRUE, selected = "North America"),
                                   hr(),
                                   shiny::selectInput("plot_type_fig5", "Plot Type", choices = c("Histogram (Frequency)", "Histogram (Density)"), selected = "Histogram (Frequency)")
                                 ),
@@ -204,7 +204,7 @@ server <- function(input, output) {
   output$study_publishing_year_range <- shinydashboard::renderValueBox({
     # study duration range (count multiple countries in a pooled study to be a single country, include all pollutants)
     study_publishing_min <- min(epi$publishing_year, na.rm = TRUE)
-    study_publishing_max <-  max(epi$publishing_year, na.rm = TRUE)
+    study_publishing_max <- ifelse(max(epi$publishing_year, na.rm = TRUE) < 2022, "Present", max(epi$publishing_year, na.rm = TRUE))
     final_study_duration_string <- stringr::str_c(study_publishing_min, "-", study_publishing_max, sep = " ")
 
     shinydashboard::valueBox(
@@ -450,18 +450,52 @@ server <- function(input, output) {
 
   #> Continent Wise Distribution of Duration of Study graph
 
+
+
   output$continent_wise_dist_duration_study_graph <- plotly::renderPlotly({
-    continent_wise_study_duration_summary_table <- epi %>%
-      dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
-      dplyr::group_by(paper_uid, continent) %>%
-      dplyr::summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
-      dplyr::ungroup() %>%
-      dplyr::mutate(order_continent = ifelse(continent == "Asia", 1, 0),
-                    order_continent = ifelse(continent == "Europe", 2, order_continent),
-                    order_continent = ifelse(continent == "North America", 3, order_continent),
-                    order_continent = ifelse(continent == "South America", 4, order_continent),
-                    order_continent = ifelse(continent == "Africa", 5, order_continent),
-                    order_continent = ifelse(continent == "Oceania", 6, order_continent))
+
+
+    # adding logic to check for missing continents and automatically adding missing panels for that
+
+    if(sum(missing_continents_logical) == 0){
+      continent_wise_study_duration_graph_summary_table <- epi %>%
+        dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
+        dplyr::group_by(paper_uid, continent) %>%
+        dplyr::summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
+        dplyr::ungroup() %>%
+        dplyr::mutate(order_continent = ifelse(continent == "Asia", 1, 0),
+               order_continent = ifelse(continent == "Europe", 2, order_continent),
+               order_continent = ifelse(continent == "North America", 3, order_continent),
+               order_continent = ifelse(continent == "South America", 4, order_continent),
+               order_continent = ifelse(continent == "Africa", 5, order_continent),
+               order_continent = ifelse(continent == "Oceania", 6, order_continent))
+    } else{
+      for(i in 1:length(missing_continents)){
+        if(i == 1){
+          continent_wise_study_duration_graph_summary_table <- epi %>%
+            dplyr::filter(continent != "NA", !is.na(continent), study_duration != "NA", !is.na(study_duration)) %>%
+            dplyr::group_by(paper_uid, continent) %>%
+            dplyr::summarise(average_study_duration = mean(study_duration, na.rm = TRUE)) %>%
+            dplyr::ungroup() %>%
+          dplyr::add_row(continent = missing_continents[i])
+        } else{
+          continent_wise_study_duration_graph_summary_table <- continent_wise_study_duration_graph_summary_table %>%
+            dplyr::add_row(continent = missing_continents[i])
+        }
+
+      }
+      continent_wise_study_duration_graph_summary_table <- continent_wise_study_duration_graph_summary_table %>%
+        mutate(order_continent = ifelse(continent == "Asia", 1, 0),
+               order_continent = ifelse(continent == "Europe", 2, order_continent),
+               order_continent = ifelse(continent == "North America", 3, order_continent),
+               order_continent = ifelse(continent == "South America", 4, order_continent),
+               order_continent = ifelse(continent == "Africa", 5, order_continent),
+               order_continent = ifelse(continent == "Oceania", 6, order_continent))
+    }
+
+
+    #----------------
+
 
 
     # plot the figure with empty Africa panel
@@ -470,7 +504,7 @@ server <- function(input, output) {
       stop("Please select atleast one continent to proceed.")
     }
     if(input$plot_type_fig5 == "Histogram (Frequency)"){
-      continent_wise_study_duration_graph <- continent_wise_study_duration_summary_table %>%
+      continent_wise_study_duration_graph <- continent_wise_study_duration_graph_summary_table %>%
         dplyr::filter(continent %in% input$continent_list) %>%
         ggplot2::ggplot() +
         ggplot2::geom_histogram(mapping = ggplot2::aes(x = average_study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
@@ -483,7 +517,7 @@ server <- function(input, output) {
                        axis.line.x = element_line(color = "black"))
 
     } else if (input$plot_type_fig5 == "Histogram (Density)"){
-      continent_wise_study_duration_graph <- continent_wise_study_duration_summary_table %>%
+      continent_wise_study_duration_graph <- continent_wise_study_duration_graph_summary_table %>%
         dplyr::filter(continent %in% input$continent_list) %>%
         ggplot2::ggplot() +
         ggplot2::geom_histogram(mapping = ggplot2::aes(x = average_study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
