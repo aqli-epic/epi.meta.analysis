@@ -273,11 +273,11 @@ server <- function(input, output) {
       ggplot2::geom_col(mapping = ggplot2::aes(x = pm2.5_bucket, y = prop_in_bucket, fill = type_of_prop), position = position_dodge(), width = 0.4) +
       ggplot2::scale_fill_manual(values = c("Percent Population in PM2.5 bucket" = "grey", "Percent Studies in PM2.5 bucket" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
       ggplot2::labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "",
-                    caption = str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 17) +
+                    caption = stringr::str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 17) +
       ggthemes::theme_hc() +
-      ggplot2::theme(axis.line.y = element_line(color = "black"),
-                     axis.line.x = element_line(color = "black"),
-                     plot.caption = element_text(hjust = 0))
+      ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                     axis.line.x = ggplot2::element_line(color = "black"),
+                     plot.caption = ggplot2::element_text(hjust = 0))
 
 
     return(plotly::ggplotly(plt))
@@ -299,11 +299,11 @@ server <- function(input, output) {
       ggplot2::ggplot() +
       ggplot2::geom_density(mapping = ggplot2::aes(x = mean_pm2.5, fill = country), alpha = 0.5, color = "black", position = "identity") +
       ggplot2::labs(x = "Mean PM2.5 concentration (in µg/m³)",
-                    caption = str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+                    caption = stringr::str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
       ggthemes::theme_hc() +
-      ggplot2::theme(axis.line.y = element_line(color = "black"),
-                     axis.line.x = element_line(color = "black"),
-                     plot.caption = element_text(hjust = 0))
+      ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                     axis.line.x = ggplot2::element_line(color = "black"),
+                     plot.caption = ggplot2::element_text(hjust = 0))
 
     return(plotly::ggplotly(mean_pm2.5_country_wise_graph))
   })
@@ -380,9 +380,9 @@ server <- function(input, output) {
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::scale_size_binned() +
         ggplot2::scale_size(range = c(0, 8)) +
-      ggplot2::labs(caption = str_wrap("*The size of the circles is directly proportional to the total number of times a given country has been included in a study (any study, not PM2.5 specific)."), width = 10) +
+      ggplot2::labs(caption = stringr::str_wrap("*The size of the circles is directly proportional to the total number of times a given country has been included in a study (any study, not PM2.5 specific)."), width = 10) +
         ggthemes::theme_map() +
-        ggplot2::theme(plot.caption = element_text(hjust = 0))
+        ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0))
       return(plotly::ggplotly(geographic_dist_graph))
 
     } else if ((("all" %in% input$countries_fig3) == FALSE) & (length(input$countries_fig3) >= 1)) {
@@ -395,9 +395,9 @@ server <- function(input, output) {
         ggplot2::theme(legend.position = "bottom") +
         ggplot2::scale_size_binned() +
         ggplot2::scale_size(range = c(0, 8)) +
-       ggplot2::labs(caption = str_wrap("*The size of the circles is directly proportional to the total number of times a given country has been included in a study (any study, not PM2.5 specific)."), width = 10)
+       ggplot2::labs(caption = stringr::str_wrap("*The size of the circles is directly proportional to the total number of times a given country has been included in a study (any study, not PM2.5 specific)."), width = 10)
         ggthemes::theme_map() +
-          ggplot2::theme(plot.caption = element_text(hjust = 0))
+          ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0))
       return(plotly::ggplotly(geographic_dist_graph))
     }
 
@@ -437,11 +437,11 @@ server <- function(input, output) {
       ggplot2::ggplot() +
       ggplot2::geom_line(mapping = ggplot2::aes(x = publishing_year, y = total_studies), lwd = 1.2, color = "cornflowerblue") +
       ggplot2::labs(x = "Year", y = "Total Number of Studies",
-                    caption = str_wrap("*This graph displays the total number of AQ epi studies (all studies, not PM2.5 specific) published over time."), width = 10) +
+                    caption = stringr::str_wrap("*This graph displays the total number of AQ epi studies (all studies, not PM2.5 specific) published over time."), width = 10) +
       ggthemes::theme_hc() +
-      ggplot2::theme(axis.line.y = element_line(color = "black"),
-                     axis.line.x = element_line(color = "black"),
-                     plot.caption = element_text(hjust = 0)) %>%
+      ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                     axis.line.x = ggplot2::element_line(color = "black"),
+                     plot.caption = ggplot2::element_text(hjust = 0)) %>%
       return()
   })
 
@@ -519,14 +519,14 @@ server <- function(input, output) {
         ggplot2::ggplot() +
         ggplot2::geom_histogram(mapping = ggplot2::aes(x = average_study_duration, fill = continent), alpha = 0.5, color = "white", position = "identity", binwidth = 2) +
         ggplot2::labs(x = "Study Duration",
-                      caption = str_wrap("*This graph displays distribution distribution by continent for all studies (not PM2.5 specific)"), width = 10) +
+                      caption = stringr::str_wrap("*This graph displays distribution distribution by continent for all studies (not PM2.5 specific)"), width = 10) +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 10)) +
         ggthemes::theme_hc() +
         ggplot2::theme(legend.title = element_blank()) +
         ggplot2::facet_wrap(~forcats::fct_reorder(continent, order_continent), nrow = 1) +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0))
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0))
 
     } else if (input$plot_type_fig5 == "Histogram (Density)"){
       continent_wise_study_duration_graph <- continent_wise_study_duration_graph_summary_table %>%
@@ -534,14 +534,14 @@ server <- function(input, output) {
         ggplot2::ggplot() +
         ggplot2::geom_histogram(mapping = ggplot2::aes(x = average_study_duration, y = ..density.., fill = continent), alpha = 0.5, color = "white", binwidth = 2) +
         ggplot2::labs(x = "Study Duration",
-                      caption = str_wrap("*This graph displays distribution distribution by continent for all studies (not PM2.5 specific)"), width = 10) +
+                      caption = stringr::str_wrap("*This graph displays distribution distribution by continent for all studies (not PM2.5 specific)"), width = 10) +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 10)) +
         ggthemes::theme_hc() +
         ggplot2::theme(legend.title = element_blank()) +
         ggplot2::facet_wrap(~forcats::fct_reorder(continent, order_continent), nrow = 1) +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0))
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0))
 
     }
 
@@ -569,11 +569,11 @@ server <- function(input, output) {
         ggplot2::ggplot() +
         ggplot2::geom_histogram(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), position = "identity", alpha = 0.4, color = "white") +
         ggplot2::labs(x = "PM2.5 concentration (in µg/m³)",
-                      caption = str_wrap("*This graph takes into account only those PM2.5 studies that have atleast one of 'pm2.5 lower limit value', 'pm2.5 upper limit value'."), width = 10) +
+                      caption = stringr::str_wrap("*This graph takes into account only those PM2.5 studies that have atleast one of 'pm2.5 lower limit value', 'pm2.5 upper limit value'."), width = 10) +
         ggthemes::theme_hc() +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0))
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0))
 
     } else if(input$plot_type_fig6 == "Density"){
       epi_long %>%
@@ -582,11 +582,11 @@ server <- function(input, output) {
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = exposure_value, fill = exposure_type), alpha = 0.6, position = "identity") +
         ggplot2::labs(x = "PM2.5 concentration (in µg/m³)",
-                      caption = str_wrap("*This graph takes into account only those PM2.5 studies that have atleast one of 'pm2.5 lower limit value', 'pm2.5 upper limit value'."), width = 10) +
+                      caption = stringr::str_wrap("*This graph takes into account only those PM2.5 studies that have atleast one of 'pm2.5 lower limit value', 'pm2.5 upper limit value'."), width = 10) +
         ggthemes::theme_hc() +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0))
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0))
 
 
     }
@@ -613,10 +613,10 @@ server <- function(input, output) {
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
         ggthemes::theme_hc() +
-        ggplot2::labs(caption = str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which a cohort/sample size is available."), width = 10) +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0)) %>%
+        ggplot2::labs(caption = stringr::str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which a cohort/sample size is available."), width = 10) +
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0)) %>%
         return()
 
     } else if ((("all" %in% input$countries_list_fig7) == FALSE) & (length(input$countries_list_fig7) >= 1)){
@@ -625,11 +625,11 @@ server <- function(input, output) {
         dplyr::filter(country %in% input$countries_list_fig7) %>%
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = log10(cohort_size), fill = country), alpha = 0.5) +
-        ggplot2::labs(caption = str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which a cohort/sample size is available."), width = 10) +
+        ggplot2::labs(caption = stringr::str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which a cohort/sample size is available."), width = 10) +
         ggthemes::theme_hc() +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0)) %>%
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0)) %>%
         return()
     }
 
@@ -653,11 +653,11 @@ server <- function(input, output) {
         ggplot2::scale_x_continuous(breaks = seq(0, 90, 5)) +
         ggplot2::scale_y_continuous(breaks = seq(0, 15, 2)) +
         ggplot2::labs(x = "Age",
-                      caption = str_wrap("*This graph takes into account those studies  (can include non-PM2.5 studies) that have atleast one of 'age lower limit', 'age upper limit'."), width = 10) +
+                      caption = stringr::str_wrap("*This graph takes into account those studies  (can include non-PM2.5 studies) that have atleast one of 'age lower limit', 'age upper limit'."), width = 10) +
         ggthemes::theme_hc() +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0)) %>%
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0)) %>%
         return()
 
     } else if(input$plot_type_fig6 == "Density"){
@@ -670,11 +670,11 @@ server <- function(input, output) {
         ggplot2::geom_density(mapping = ggplot2::aes(x = age_value, fill = age_dist_type), alpha = 0.6, color = "black") +
         ggplot2::scale_x_continuous(breaks = seq(0, 90, 5)) +
         ggplot2::labs(x = "Age",
-                      caption = str_wrap("*This graph takes into account those studies  (can include non-PM2.5 studies) that have atleast one of 'age lower limit', 'age upper limit'."), width = 10) +
+                      caption = stringr::str_wrap("*This graph takes into account those studies  (can include non-PM2.5 studies) that have atleast one of 'age lower limit', 'age upper limit'."), width = 10) +
         ggthemes::theme_hc() +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0)) %>%
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0)) %>%
         return()
     }
 
@@ -700,10 +700,10 @@ server <- function(input, output) {
         ggplot2::geom_density(mapping = ggplot2::aes(x = study_duration, fill = country, alpha = 0.5)) +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 5)) +
         ggthemes::theme_hc() +
-        ggplot2::labs(caption = str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which study duration is available."), width = 10 ) +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0)) %>%
+        ggplot2::labs(caption = stringr::str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which study duration is available."), width = 10 ) +
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0)) %>%
         return()
     } else if ((("all" %in% input$countries_list_fig7) == FALSE) & (length(input$countries_list_fig7) >= 1)){
       epi %>%
@@ -711,12 +711,12 @@ server <- function(input, output) {
         dplyr::filter(country %in% input$countries_list_fig7) %>%
         ggplot2::ggplot() +
         ggplot2::geom_density(mapping = ggplot2::aes(x = study_duration, fill = country, alpha = 0.5)) +
-        ggplot2::labs(caption = str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which study duration is available."), width = 10 ) +
+        ggplot2::labs(caption = stringr::str_wrap("*This graph takes into account only those studies (can include non-PM2.5 studies) in which study duration is available."), width = 10 ) +
         ggplot2::scale_x_continuous(breaks = seq(0, 40, 5)) +
         ggthemes::theme_hc() +
-        ggplot2::theme(axis.line.y = element_line(color = "black"),
-                       axis.line.x = element_line(color = "black"),
-                       plot.caption = element_text(hjust = 0)) %>%
+        ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
+                       axis.line.x = ggplot2::element_line(color = "black"),
+                       plot.caption = ggplot2::element_text(hjust = 0)) %>%
         return()
     }
 
