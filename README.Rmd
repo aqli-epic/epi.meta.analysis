@@ -115,14 +115,32 @@ percent_people_above_who <- round((num_people_above_who/world_pop)*100, 1)
 <!-- badges: start -->
 <!-- badges: end -->
 
-This analysis is our best first attempt to capture all epidemiological research studies (>`r min_sample_size` people; max sample size: `r round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)` million), that are relatively long term (> `r min_study_duration_in_years` year(s), max study duration: `r max(epi$study_duration, na.rm =TRUE)` years) and measure the impact of **ambient** PM~2.5~, PM~10~, TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all cause, premature)/Life Expectancy published between `r min(epi$publishing_year)` and present*, findable in available peer-reviewed literature. Hereafter, referred to as **AQ epi studies** for short. As of now, this meta-analysis analyzes `r epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()` AQ epi studies. This number will grow over time (and that will be reflected in the blog) as this analysis evolves over time and more and more studies are added to it.
-
+This analysis is our ongoing attempt to capture all epidemiological research studies (>`r min_sample_size` people; max sample size: `r round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)` million), that are relatively long term (> `r min_study_duration_in_years` year(s), max study duration: `r max(epi$study_duration, na.rm =TRUE)` years) and measure the impact of **ambient** PM~2.5~, PM~10~, TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all cause, premature)/Life Expectancy published between `r min(epi$publishing_year)` and present*, findable in available peer-reviewed literature. Hereafter, we refer to these studies as **"AQ epi studies"** for short. As of now, this meta-analysis analyzes `r epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()` AQ epi studies. This analysis will be continually updated to incorporate new AQ epi studies. 
 
 We are seeking to make this analysis as current, complete and error-free as possible and view it as a continual work in progress. We would appreciate the air quality community’s comments, corrections, and suggestions. Please contact **aqli-epic@uchicago.edu** or leave a comment in [this](https://github.com/aqli-epic/epi.meta.analysis) GitHub repository/directly leave comments in the [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) (more on this below). 
 
+&nbsp;
+
+<hr>
+
+## Major Takeaways
+
+* 60.3 percent of all AQ epi studies (41 studies) included in this analysis included populations in either the US or Canada or both.
+
+* Of the total number of times a given continent’s population has been included in any given AQ epi study, North America dominates the rest of the continents and has been included 60.3 percent of times (all due to studies in the US or Canada). Closely following North America, populations in Asia and Europe have been included in AQ epi studies 22.1 and 17.6 percent of times respectively. Africa, South America, Oceania have seen 0 long term (> 1 year), large (>1000 people in the sample) AQ epi study.
+
+* There have been no large (> 1 year) or long (>1000 people in the sample) PM epi studies that were performed in Africa, South America, Oceania, with a combined population of 1.8 billion, 23.3 percent of the Earth’s total human population.
+
+* Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
+
+* In total, 7 “really” long term studies (> 25 years) have been performed. That is, 10.3 percent of the total number of studies.
+
+* All of the following continents have seen at least 1 really long term study: North America, Europe.
+
+
 ## Purpose
 
-The purpose of this analysis is to understand the landscape of epidemiological research on the relationship between PM~2.5~, PM~10~, TSP, Ultrafine Particulate Matter and Mortality (all types, as specified above)/Life Expectancy and to surface demographic, geographic, or other trends that may exist in the current state of literature. While the overall arc of the relationship between these pollutants and human health is clear to take action, such trends can help the field reflect on itself, take stock of any biases or gaps – and point toward future research and policy opportunities.
+The purpose of this analysis is to understand the landscape of epidemiological research on the relationship between PM~2.5~, PM~10~, TSP, Ultrafine Particulate Matter and Mortality (all types, as specified above)/Life Expectancy and to surface demographic, geographic, or other trends that may exist in the current state of literature. While the overall arc of the relationship between these pollutants and human health is clear enough to take action, understanding such trends can help the field reflect on itself, take stock of any biases or gaps – and point toward future research and policy opportunities.
 
 
 ## Why do epidemiological studies on air pollution and mortality matter?
@@ -131,55 +149,6 @@ While global estimates of air pollution’s toll on public health vary, they all
 
 The burden of air pollution across the world is also not uniform. While `r percent_people_above_who` percent of the world population is out of compliance with the latest WHO annual PM~2.5~ guideline of `r who_pm2.5_guideline` µg/m³, there is huge variation in the quality of air one breathes. 
 
-
-## Inclusion/Exclusion Criteria for studies
-
-  * The underlying [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) for this meta analysis focuses only on those papers that study the link between **PM~2.5~**, **PM~10~**, **TSP**, **Fine Particulate Matter** and **__Mortality/Life Expectancy__**.  In addition to the analysis dataset, there is a [**__master dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=0) that expands on the analysis dataset to include other useful information. The idea behind the master dataset is to record any additional details (whether additional facts about the paper, or details on other pollutants studied in the paper) that will not be a part of the main data analysis exercise. Master dataset will also list additional papers that do not fit into the inclusion criteria.
-  
-
-  * The analysis dataset excludes the following types of papers: meta-analysis, unpublished papers, papers studying the effects of indoor air pollution on Mortality/Life Expectancy, papers forecasting future air pollution/life expectancy/mortality. But, the master dataset lists all of these studies.
-
-  * In Multi-Country (pooled) studies, one entry (one row in the analysis dataset) is recorded for each country in papers where country level data is available. There are some pooled studies where country level data is not available, but rather data is available for a custom region (e.g. South-East Asia), such pooled studies are excluded from the analysis dataset. But, the master dataset still lists all of these additional studies for reference.
-  
-  * In cases where the same cohort is studied by different research groups at different points in time/using different methods: we have included and counted all of those studies as separate unique studies in the analysis below.
-  
-  * Papers studying the health effects of pollution segregated by sectors (source apportionment type studies), regions (example, Rural v/s Urban), season (Winter v/s Summer) are excluded from this analysis. 
-  
-  * Papers that include combined estimates of Household and Ambient Air Pollution, but not individual estimates are excluded.
-  
-  * All papers studying the impact of pollutants on DALY's (Disability Adjusted Life Years), are excluded from this analysis.
-  
-
-
-## Other important points
-
-
-  * In papers, where the minimum PM~2.5~ concentration was not reported, we have assumed the lowest available percentile data available on PM2.5 concentration as the minimum concentration.
-  
-  * In many papers, only one of the mean PM~2.5~ or PM~2.5~ range is reported but not both. In these cases, wherever the data is not available (whether it is mean PM2.5 or PM2.5 range) we have recorded a NA. Apart from this, anywhere we couldn't find data, we have recorded a NA.
-
-  * In cases, where mean PM~2.5~ is reported for both the **start year** and the **end year**(or also for sometime between a start year and the end year) of the study, we have reported the **end year** mean PM~2.5~ value.
-  
-  * Papers that have used a conversion factor to convert mean PM~10~ concentrations to mean PM~2.5~ concentrations are included but, there PM~2.5~ values (mean, lower limit, upper limit, standard deviation) is not recorded.
-  
-
-  * In multi-pollutant studies where different pollutants have been studied over different periods of time, we have chosen the specific time period that corresponds to the PM~2.5~ pollutant (in cases where we PM~2.5~ is not present, we have recorded the time period corresponding to one of the other pollutants).
-
-
-  * We have recorded one mean PM~2.5~ value for each paper. But, there are papers where more than one mean PM~2.5~ value is reported (for example, one for the male group and one for the female group). In these cases, we have picked one value from the ones that are available.
-
-
-  * In some papers, the exact start and/or end year of a study is unclear. In these cases, we have mostly chosen the first instance of the multiple “study duration ranges” (depending on multiple plausible interpretations of when the final follow up ended) the paper.
-
-  * In many papers, the upper limit or lower limit for age is not precisely specified. In these cases, we have recorded a NA. For example, there are papers where the upper limit category for age is 85+. In these cases, although we know the upper limit category, we still don't know the upper limit of the age, which could be 90, 95, 100, etc.
-  
-  * In places, where the sample size is specifed in terms of "number of regions" (for example, 17 districts) and not "number of people", we have recorded a NA in the cohort size column.
-  
-  * Under the “methods” column (in the master dataset), we have only mentioned a subset of methods that were used to carry out different parts of the study. Authors may have used other methods than those mentioned in our meta analysis.
-  
-  * Different graphs are generated using different subsets of the [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996). Most of them are PM~2.5~ specific (our main focus), others include all pollutants (PM~2.5~, PM~10~, TSP, Ultrafine Particles). The type of papers used to generate a given graph and other nuances for the graph in question are specified within the graph (as a note) and/or the accompanying text.
-  
-  
 ## Results
 
 &nbsp;
@@ -385,6 +354,8 @@ mean_pm2.5_country_wise_graph
   
 &nbsp;
 
+<hr>
+
 ### Geographic Distribution of Studies
 
 
@@ -523,6 +494,8 @@ geographic_dist_graph
   
   
 &nbsp;
+
+<hr>
   
 ### AQ Epi studies over time
 
@@ -555,9 +528,12 @@ dplyr::distinct(paper_uid, .keep_all = TRUE) %>%
   * Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
   
 
+&nbsp;
+
+<hr>
+
 ### Distribution of duration of study by continent
 
-&nbsp;
 
 ```{r dist_duration_study_calcs, echo=FALSE, message=FALSE, warning=FALSE}
 
@@ -701,32 +677,39 @@ continent_wise_study_duration_graph
 
 * Similarly, `r epi_long_term_studies_countries$continent[2]` has been included `r epi_long_term_studies_countries$n[2]` times in such long term studies (`r epi_long_term_studies_countries$prop_n[2]` percent of the total number of times any given continent is included in any given study).
 
+```{r eval=FALSE, include=FALSE}
+
+# press ctrl + shift + c to uncomment this.
+
+# ### Major takeaways
+# 
+# * `r round((num_times_usa_canada_included/(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()))*100, 1)` percent of all AQ epi studies (`r num_times_usa_canada_included` studies) included in this analysis included populations in either the US or Canada or both.
+# 
+# * Of the total number of times a given continent's population has been included in any given AQ epi study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times (all due to studies in the US or Canada). Closely following North America, populations in `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` have been included in AQ epi studies `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r missing_continents` have seen 0 long term (> `r min_study_duration_in_years` year), large (>`r min_sample_size` people in the sample) AQ epi study.
+#   
+# * There have been no large (> `r min_study_duration_in_years` year) or long (>`r min_sample_size` people in the sample) PM epi studies that were performed in `r missing_continents`, with a combined population of `r tot_pop_africa_missing_continents_in_billions` billion, `r round((tot_pop_africa_missing_continents/world_population)*100, 1)` percent of the Earth's total human population.
+# 
+# * Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
+# 
+# * In total, `r num_really_long_term_studies` "really" long term studies (> `r long_term_study_duration` years) have been performed. That is, `r round((num_really_long_term_studies/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE)))*100, 1)` percent of the total number of studies.
+# 
+# * All of the following continents have seen at least 1 really long term study: `r epi_long_term_studies_countries %>% filter(n >= 1) %>% select(continent) %>% unlist() %>% as.vector()`.
+
+```
 
 
-### Major takeaways
+&nbsp;
 
-* `r round((num_times_usa_canada_included/(epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()))*100, 1)` percent of all AQ epi studies (`r num_times_usa_canada_included` studies) included in this analysis included populations in either the US or Canada or both.
+<hr>
 
-* Of the total number of times a given continent's population has been included in any given AQ epi study, `r continent_wise_study_summary$continent[1]` dominates the rest of the continents and has been included `r continent_wise_study_summary$prop_studies[1]` percent of times (all due to studies in the US or Canada). Closely following North America, populations in `r continent_wise_study_summary$continent[2]` and `r continent_wise_study_summary$continent[3]` have been included in AQ epi studies `r continent_wise_study_summary$prop_studies[2]` and `r continent_wise_study_summary$prop_studies[3]` percent of times respectively. `r missing_continents` have seen 0 long term (> `r min_study_duration_in_years` year), large (>`r min_sample_size` people in the sample) AQ epi study.
-  
-* There have been no large (> `r min_study_duration_in_years` year) or long (>`r min_sample_size` people in the sample) PM epi studies that were performed in `r missing_continents`, with a combined population of `r tot_pop_africa_missing_continents_in_billions` billion, `r round((tot_pop_africa_missing_continents/world_population)*100, 1)` percent of the Earth's total human population.
+## Conclusion
 
-* Post 2009, there has been a noticeable increase in the overall volume of AQ epi studies published.
-
-* In total, `r num_really_long_term_studies` "really" long term studies (> `r long_term_study_duration` years) have been performed. That is, `r round((num_really_long_term_studies/nrow(epi %>% distinct(paper_uid, .keep_all = TRUE)))*100, 1)` percent of the total number of studies.
-
-* All of the following continents have seen at least 1 really long term study: `r epi_long_term_studies_countries %>% filter(n >= 1) %>% select(continent) %>% unlist() %>% as.vector()`.
-
-
-
-### Conclusion
-
-All studies included in this analysis point to the same overall picture:air pollution is a serious health threat. The existing state of scientific literature on air pollution and health is clear that air pollution’s impact on health is well-established and taking action in a polluted environment should not be delayed in order to complete multi-year large sample (> `r min_sample_size`) epidemiological studies in an area, even if there has not been a prior study in that particular geography. That said, it is important for the field of air quality epidemiolgy to understand the contours of its current research landscape to most effectively identify directions for future research and deploy limited resources. 
+All studies included in this analysis point to the same overall picture:air pollution is a serious health threat. The existing state of scientific literature on air pollution and health is clear that air pollution’s impact on health is well-established and taking action to improve a polluted environment should not be delayed in order to complete multi-year large sample (> `r min_sample_size`) epidemiological studies in an area, even if there has not been a prior study in that particular geography. That said, it is important for the field of air quality epidemiolgy to understand the contours of its current research landscape to most effectively identify directions for future research and deploy limited resources. 
 
 &nbsp;
 
 
-### Methodology 
+## Methodology 
 
 Through a comprehensive and ongoing* literature review, we are making an attempt at creating an exhaustive public listing of all the epidemiological studies out there (that we could find) that examine the relationship between PM~2.5~ and Life Expectancy/Mortality. 
 
@@ -734,13 +717,61 @@ For each study, we record data on key defining features, such as: Geography, Sam
 
 We are seeking to make this analysis as current, complete and error-free as possible and view it as a continual work in progress. We would welcome the air quality community’s any comments, corrections, andor suggestions. Please contact **aqli-epic@uchicago.edu** or leave a comment in this GitHub repository. 
 
-### Limitations (To be discussed)
+&nbsp;
 
+## Inclusion/Exclusion Criteria for studies
+
+  * The underlying [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) for this meta analysis focuses only on those papers that study the link between **PM~2.5~**, **PM~10~**, **TSP**, **Fine Particulate Matter** and **__Mortality/Life Expectancy__**.  In addition to the analysis dataset, there is a [**__master dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=0) that expands on the analysis dataset to include other useful information. The idea behind the master dataset is to record any additional details (whether additional facts about the paper, or details on other pollutants studied in the paper) that will not be a part of the main data analysis exercise. Master dataset will also list additional papers that do not fit into the inclusion criteria.
+  
+
+  * The analysis dataset excludes the following types of papers: meta-analysis, unpublished papers, papers studying the effects of indoor air pollution on Mortality/Life Expectancy, papers forecasting future air pollution/life expectancy/mortality. But, the master dataset lists all of these studies.
+
+  * In Multi-Country (pooled) studies, one entry (one row in the analysis dataset) is recorded for each country in papers where country level data is available. There are some pooled studies where country level data is not available, but rather data is available for a custom region (e.g. South-East Asia), such pooled studies are excluded from the analysis dataset. But, the master dataset still lists all of these additional studies for reference.
+  
+  * In cases where the same cohort is studied by different research groups at different points in time/using different methods: we have included and counted all of those studies as separate unique studies in the analysis below.
+  
+  * Papers studying the health effects of pollution segregated by sectors (source apportionment type studies), regions (example, Rural v/s Urban), season (Winter v/s Summer) are excluded from this analysis. 
+  
+  * Papers that include combined estimates of Household and Ambient Air Pollution, but not individual estimates are excluded.
+  
+  * All papers studying the impact of pollutants on DALY's (Disability Adjusted Life Years), are excluded from this analysis.
+  
+&nbsp;  
+  
+## Other important points
+
+
+  * In papers, where the minimum PM~2.5~ concentration was not reported, we have assumed the lowest available percentile data available on PM2.5 concentration as the minimum concentration.
+  
+  * In many papers, only one of the mean PM~2.5~ or PM~2.5~ range is reported but not both. In these cases, wherever the data is not available (whether it is mean PM~2.5~ or PM~2.5~ range) we have recorded the instances as "NA". Apart from this, anywhere we couldn’t find data, we have recorded it as "NA". **This is one of the limitations of this analysis**. 
+  
+  * Different papers talk about different types of mean PM~2.5~ values. Some report daily averages, while others may report monthly/annual averages. Also, in some cases, the averages are population weighted and in other cases they are not. But, it is not always clearly stated as to which type of average the paper is referring to (or how it was calculated). In scenarios like these, we had to make a value judgement and **this is one of the limitations of this analysis.**
+
+  * In cases, where mean PM~2.5~ is reported for both the **start year** and the **end year**(or also for sometime between a start year and the end year) of the study, we have reported the **end year** mean PM~2.5~ value.
+  
+  * Papers that have used a conversion factor to convert mean PM~10~ concentrations to mean PM~2.5~ concentrations are included but, there PM~2.5~ values (mean, lower limit, upper limit, standard deviation) is not recorded.
+  
+
+  * In multi-pollutant studies where different pollutants have been studied over different periods of time, we have chosen the specific time period that corresponds to the PM~2.5~ pollutant (in cases where we PM~2.5~ is not present, we have recorded the time period corresponding to one of the other pollutants).
+
+
+  * We have recorded one mean PM~2.5~ value for each paper. But, there are papers where more than one mean PM~2.5~ value is reported (for example, one for the male group and one for the female group). In these cases, we have picked one value from the ones that are available.
+
+
+  * In some papers, the exact start and/or end year of a study is unclear. In these cases, we have mostly chosen the first instance of the multiple “study duration ranges” (depending on multiple plausible interpretations of when the final follow up ended) the paper.
+
+  * In many papers, the upper limit or lower limit for age is not precisely specified. In these cases, we have recorded a NA. For example, there are papers where the upper limit category for age is 85+. In these cases, although we know the upper limit category, we still don't know the upper limit of the age, which could be 90, 95, 100, etc.
+  
+  * In places, where the sample size is specifed in terms of "number of regions" (for example, 17 districts) and not "number of people", we have recorded a NA in the cohort size column.
+  
+  * Under the “methods” column (in the master dataset), we have only mentioned a subset of methods that were used to carry out different parts of the study. Authors may have used other methods than those mentioned in our meta analysis.
+  
+  * Different graphs are generated using different subsets of the [analysis dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996). Most of them are PM~2.5~ specific (our main focus), others include all pollutants (PM~2.5~, PM~10~, TSP, Ultrafine Particles). The type of papers used to generate a given graph and other nuances for the graph in question are specified within the graph (as a note) and/or the accompanying text.
 
 &nbsp;
 
 
-### How can you (the community) help in improving this analysis?
+## How can you (the community) help in improving this analysis?
 
 
   * Add to the [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) and and grow the epi database:
@@ -764,10 +795,6 @@ We are seeking to make this analysis as current, complete and error-free as poss
 <hr>
 
 ### References
-
-
-
-&nbsp;
 
 &nbsp;
 

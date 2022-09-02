@@ -6,17 +6,16 @@
 <!-- badges: start -->
 <!-- badges: end -->
 
-This analysis is our best first attempt to capture all epidemiological
+This analysis is our ongoing attempt to capture all epidemiological
 research studies (\>1000 people; max sample size: 73 million), that are
 relatively long term (\> 1 year(s), max study duration: 36 years) and
 measure the impact of **ambient** PM<sub>2.5</sub>, PM<sub>10</sub>,
 TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all
 cause, premature)/Life Expectancy published between 1993 and present\*,
-findable in available peer-reviewed literature. Hereafter, referred to
-as **AQ epi studies** for short. As of now, this meta-analysis analyzes
-68 AQ epi studies. This number will grow over time (and that will be
-reflected in the blog) as this analysis evolves over time and more and
-more studies are added to it.
+findable in available peer-reviewed literature. Hereafter, we refer to
+these studies as **“AQ epi studies”** for short. As of now, this
+meta-analysis analyzes 68 AQ epi studies. This analysis will be
+continually updated to incorporate new AQ epi studies.
 
 We are seeking to make this analysis as current, complete and error-free
 as possible and view it as a continual work in progress. We would
@@ -27,6 +26,38 @@ repository/directly leave comments in the [****analysis
 dataset****](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996)
 (more on this below).
 
+ 
+
+<hr>
+
+## Major Takeaways
+
+-   60.3 percent of all AQ epi studies (41 studies) included in this
+    analysis included populations in either the US or Canada or both.
+
+-   Of the total number of times a given continent’s population has been
+    included in any given AQ epi study, North America dominates the rest
+    of the continents and has been included 60.3 percent of times (all
+    due to studies in the US or Canada). Closely following North
+    America, populations in Asia and Europe have been included in AQ epi
+    studies 22.1 and 17.6 percent of times respectively. Africa, South
+    America, Oceania have seen 0 long term (\> 1 year), large (\>1000
+    people in the sample) AQ epi study.
+
+-   There have been no large (\> 1 year) or long (\>1000 people in the
+    sample) PM epi studies that were performed in Africa, South America,
+    Oceania, with a combined population of 1.8 billion, 23.3 percent of
+    the Earth’s total human population.
+
+-   Post 2009, there has been a noticeable increase in the overall
+    volume of AQ epi studies published.
+
+-   In total, 7 “really” long term studies (\> 25 years) have been
+    performed. That is, 10.3 percent of the total number of studies.
+
+-   All of the following continents have seen at least 1 really long
+    term study: North America, Europe.
+
 ## Purpose
 
 The purpose of this analysis is to understand the landscape of
@@ -35,9 +66,10 @@ PM<sub>10</sub>, TSP, Ultrafine Particulate Matter and Mortality (all
 types, as specified above)/Life Expectancy and to surface demographic,
 geographic, or other trends that may exist in the current state of
 literature. While the overall arc of the relationship between these
-pollutants and human health is clear to take action, such trends can
-help the field reflect on itself, take stock of any biases or gaps – and
-point toward future research and policy opportunities.
+pollutants and human health is clear enough to take action,
+understanding such trends can help the field reflect on itself, take
+stock of any biases or gaps – and point toward future research and
+policy opportunities.
 
 ## Why do epidemiological studies on air pollution and mortality matter?
 
@@ -60,6 +92,159 @@ The burden of air pollution across the world is also not uniform. While
 97.3 percent of the world population is out of compliance with the
 latest WHO annual PM<sub>2.5</sub> guideline of 5 µg/m³, there is huge
 variation in the quality of air one breathes.
+
+## Results
+
+ 
+
+### PM<sub>2.5</sub> concentration range and the Global Population Distribution
+
+ 
+
+<img src="man/figures/README-mean_pm2.5_population_graph_calcs-1.png" width="100%" /><img src="man/figures/README-mean_pm2.5_population_graph_calcs-2.png" width="100%" />
+
+ 
+
+-   In total 68 AQ epi studies were included in the final [analysis
+    dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
+    Of these, 58 were PM<sub>2.5</sub> specific. Others (10 studies) are
+    multi-pollutant studies.
+
+-   12.7 percent of the world population, or 962.9 million people, live
+    in areas where the annual average PM<sub>2.5</sub> pollution is
+    greater than 50 µg/m³. But, only 6.9 percent (4 PM<sub>2.5</sub>
+    specific studies) of the total PM<sub>2.5</sub> studies, have been
+    performed in these highly polluted parts of the world. These highly
+    polluted areas are areas where the average PM<sub>2.5</sub>
+    pollution is at least 10 times the WHO PM<sub>2.5</sub> safe
+    guideline of 5 µg/m³.
+
+-   Approximately 5.5 percent of the world population (420.4 million
+    people) live in the most severely polluted parts of the world, where
+    annual average PM<sub>2.5</sub> pollution is upwards of 75 µg/m³ (at
+    least 15 times the WHO safe guideline). In these most severely
+    polluted parts of the world, 0 PM<sub>2.5</sub> AQ epi studies have
+    been performed .
+
+-   Most of the PM<sub>2.5</sub> AQ epi studies (75.9 percent of the
+    total number of PM<sub>2.5</sub> studies, or 44 studies) performed
+    so far, are concentrated in areas where the average PM<sub>2.5</sub>
+    concentration is in the 0-25 µg/m³ range. People living in these
+    areas (59.2 percent of the world population) are breathing air that
+    is much less polluted relative to the people living in the most
+    polluted parts of the world (as seen above). But, even in the 0-25
+    µg/m³ bucket, anyone living above 5 µg/m³, is out of compliance with
+    the WHO PM<sub>2.5</sub> guideline.
+
+ 
+
+<hr>
+
+### Geographic Distribution of Studies
+
+<img src="man/figures/README-geographic_dist_studies_calcs-1.png" width="100%" />
+
+-   60.3 percent of all AQ epi studies (41 studies) included in this
+    analysis included populations in either the US or Canada or both.
+
+-   USA, Canada and Europe (or some combination of them) were focus
+    countries in 77.9 percent of all AQ epi studies (53 studies). Other
+    countrie(s) that have been included in an AQ epi study: China,
+    Japan, Hong Kong, Taiwan.
+
+-   Of the total number of times a given continent’s population has been
+    included in any given AQ epi study, North America dominates the rest
+    of the continents and has been included 60.3 percent of times (all
+    due to studies in the US or Canada). Closely following North
+    America, populations in Asia and Europe have been included in AQ epi
+    studies 22.1 and 17.6 percent of times respectively. Africa, South
+    America, Oceania have seen 0 long term (\> 1 year), large (\>1000
+    people in the sample) AQ epi study.
+
+ 
+
+<hr>
+
+### AQ Epi studies over time
+
+ 
+
+<img src="man/figures/README-aq_epi_studies_over_time_graph-1.png" width="100%" />
+
+-   In most of the 90’s and early 2000’s, the rate of AQ epi studies
+    publishing was around 1 to 2 studies per annum on average.
+
+    -   Post 2009, there has been a noticeable increase in the overall
+        volume of AQ epi studies published.
+
+ 
+
+<hr>
+
+### Distribution of duration of study by continent
+
+<img src="man/figures/README-dist_duration_study_calcs-1.png" width="100%" />
+
+-   In total, 7 “really” long term studies (\> 25 years) have been
+    performed. That is, 10.3 percent of the total number of studies.
+
+-   All of the following continents have seen at least 1 really long
+    term study: North America, Europe.
+
+-   All of the following continents have seen more than 1 really long
+    term study: North America.
+
+-   In all of the really long term studies (including both
+    multi-country/continent and single-country), i.e. ones that have a
+    study duration of \> 25 years - North America was included 6 times
+    in those studies (85.7 percent of the total number of times any
+    given continent is included in any given study).
+
+-   Similarly, Europe has been included 1 times in such long term
+    studies (14.3 percent of the total number of times any given
+    continent is included in any given study).
+
+ 
+
+<hr>
+
+## Conclusion
+
+All studies included in this analysis point to the same overall
+picture:air pollution is a serious health threat. The existing state of
+scientific literature on air pollution and health is clear that air
+pollution’s impact on health is well-established and taking action to
+improve a polluted environment should not be delayed in order to
+complete multi-year large sample (\> 1000) epidemiological studies in an
+area, even if there has not been a prior study in that particular
+geography. That said, it is important for the field of air quality
+epidemiolgy to understand the contours of its current research landscape
+to most effectively identify directions for future research and deploy
+limited resources.
+
+ 
+
+## Methodology
+
+Through a comprehensive and ongoing\* literature review, we are making
+an attempt at creating an exhaustive public listing of all the
+epidemiological studies out there (that we could find) that examine the
+relationship between PM<sub>2.5</sub> and Life Expectancy/Mortality.
+
+For each study, we record data on key defining features, such as:
+Geography, Sample Size, Study Duration, PM<sub>2.5</sub> exposure range,
+etc. Then we used
+[this](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996)
+analysis dataset to carry out a meta-analysis, results of which are
+detailed in the Results section above.
+
+We are seeking to make this analysis as current, complete and error-free
+as possible and view it as a continual work in progress. We would
+welcome the air quality community’s any comments, corrections, andor
+suggestions. Please contact **<aqli-epic@uchicago.edu>** or leave a
+comment in this GitHub repository.
+
+ 
 
 ## Inclusion/Exclusion Criteria for studies
 
@@ -107,6 +292,8 @@ variation in the quality of air one breathes.
 -   All papers studying the impact of pollutants on DALY’s (Disability
     Adjusted Life Years), are excluded from this analysis.
 
+ 
+
 ## Other important points
 
 -   In papers, where the minimum PM<sub>2.5</sub> concentration was not
@@ -115,9 +302,20 @@ variation in the quality of air one breathes.
 
 -   In many papers, only one of the mean PM<sub>2.5</sub> or
     PM<sub>2.5</sub> range is reported but not both. In these cases,
-    wherever the data is not available (whether it is mean PM2.5 or
-    PM2.5 range) we have recorded a NA. Apart from this, anywhere we
-    couldn’t find data, we have recorded a NA.
+    wherever the data is not available (whether it is mean
+    PM<sub>2.5</sub> or PM<sub>2.5</sub> range) we have recorded the
+    instances as “NA”. Apart from this, anywhere we couldn’t find data,
+    we have recorded it as “NA”. **This is one of the limitations of
+    this analysis**.
+
+-   Different papers talk about different types of mean PM<sub>2.5</sub>
+    values. Some report daily averages, while others may report
+    monthly/annual averages. Also, in some cases, the averages are
+    population weighted and in other cases they are not. But, it is not
+    always clearly stated as to which type of average the paper is
+    referring to (or how it was calculated). In scenarios like these, we
+    had to make a value judgement and **this is one of the limitations
+    of this analysis.**
 
 -   In cases, where mean PM<sub>2.5</sub> is reported for both the
     **start year** and the **end year**(or also for sometime between a
@@ -173,180 +371,9 @@ variation in the quality of air one breathes.
     graph and other nuances for the graph in question are specified
     within the graph (as a note) and/or the accompanying text.
 
-## Results
-
  
 
-### PM<sub>2.5</sub> concentration range and the Global Population Distribution
-
- 
-
-<img src="man/figures/README-mean_pm2.5_population_graph_calcs-1.png" width="100%" /><img src="man/figures/README-mean_pm2.5_population_graph_calcs-2.png" width="100%" />
-
- 
-
--   In total 68 AQ epi studies were included in the final [analysis
-    dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
-    Of these, 58 were PM<sub>2.5</sub> specific. Others (10 studies) are
-    multi-pollutant studies.
-
--   12.7 percent of the world population, or 962.9 million people, live
-    in areas where the annual average PM<sub>2.5</sub> pollution is
-    greater than 50 µg/m³. But, only 6.9 percent (4 PM<sub>2.5</sub>
-    specific studies) of the total PM<sub>2.5</sub> studies, have been
-    performed in these highly polluted parts of the world. These highly
-    polluted areas are areas where the average PM<sub>2.5</sub>
-    pollution is at least 10 times the WHO PM<sub>2.5</sub> safe
-    guideline of 5 µg/m³.
-
--   Approximately 5.5 percent of the world population (420.4 million
-    people) live in the most severely polluted parts of the world, where
-    annual average PM<sub>2.5</sub> pollution is upwards of 75 µg/m³ (at
-    least 15 times the WHO safe guideline). In these most severely
-    polluted parts of the world, 0 PM<sub>2.5</sub> AQ epi studies have
-    been performed .
-
--   Most of the PM<sub>2.5</sub> AQ epi studies (75.9 percent of the
-    total number of PM<sub>2.5</sub> studies, or 44 studies) performed
-    so far, are concentrated in areas where the average PM<sub>2.5</sub>
-    concentration is in the 0-25 µg/m³ range. People living in these
-    areas (59.2 percent of the world population) are breathing air that
-    is much less polluted relative to the people living in the most
-    polluted parts of the world (as seen above). But, even in the 0-25
-    µg/m³ bucket, anyone living above 5 µg/m³, is out of compliance with
-    the WHO PM<sub>2.5</sub> guideline.
-
- 
-
-### Geographic Distribution of Studies
-
-<img src="man/figures/README-geographic_dist_studies_calcs-1.png" width="100%" />
-
--   60.3 percent of all AQ epi studies (41 studies) included in this
-    analysis included populations in either the US or Canada or both.
-
--   USA, Canada and Europe (or some combination of them) were focus
-    countries in 77.9 percent of all AQ epi studies (53 studies). Other
-    countrie(s) that have been included in an AQ epi study: China,
-    Japan, Hong Kong, Taiwan.
-
--   Of the total number of times a given continent’s population has been
-    included in any given AQ epi study, North America dominates the rest
-    of the continents and has been included 60.3 percent of times (all
-    due to studies in the US or Canada). Closely following North
-    America, populations in Asia and Europe have been included in AQ epi
-    studies 22.1 and 17.6 percent of times respectively. Africa, South
-    America, Oceania have seen 0 long term (\> 1 year), large (\>1000
-    people in the sample) AQ epi study.
-
- 
-
-### AQ Epi studies over time
-
- 
-
-<img src="man/figures/README-aq_epi_studies_over_time_graph-1.png" width="100%" />
-
--   In most of the 90’s and early 2000’s, the rate of AQ epi studies
-    publishing was around 1 to 2 studies per annum on average.
-
--   Post 2009, there has been a noticeable increase in the overall
-    volume of AQ epi studies published.
-
-### Distribution of duration of study by continent
-
- 
-
-<img src="man/figures/README-dist_duration_study_calcs-1.png" width="100%" />
-
--   In total, 7 “really” long term studies (\> 25 years) have been
-    performed. That is, 10.3 percent of the total number of studies.
-
--   All of the following continents have seen at least 1 really long
-    term study: North America, Europe.
-
--   All of the following continents have seen more than 1 really long
-    term study: North America.
-
--   In all of the really long term studies (including both
-    multi-country/continent and single-country), i.e. ones that have a
-    study duration of \> 25 years - North America was included 6 times
-    in those studies (85.7 percent of the total number of times any
-    given continent is included in any given study).
-
--   Similarly, Europe has been included 1 times in such long term
-    studies (14.3 percent of the total number of times any given
-    continent is included in any given study).
-
-### Major takeaways
-
--   60.3 percent of all AQ epi studies (41 studies) included in this
-    analysis included populations in either the US or Canada or both.
-
--   Of the total number of times a given continent’s population has been
-    included in any given AQ epi study, North America dominates the rest
-    of the continents and has been included 60.3 percent of times (all
-    due to studies in the US or Canada). Closely following North
-    America, populations in Asia and Europe have been included in AQ epi
-    studies 22.1 and 17.6 percent of times respectively. Africa, South
-    America, Oceania have seen 0 long term (\> 1 year), large (\>1000
-    people in the sample) AQ epi study.
-
--   There have been no large (\> 1 year) or long (\>1000 people in the
-    sample) PM epi studies that were performed in Africa, South America,
-    Oceania, with a combined population of 1.8 billion, 23.3 percent of
-    the Earth’s total human population.
-
--   Post 2009, there has been a noticeable increase in the overall
-    volume of AQ epi studies published.
-
--   In total, 7 “really” long term studies (\> 25 years) have been
-    performed. That is, 10.3 percent of the total number of studies.
-
--   All of the following continents have seen at least 1 really long
-    term study: North America, Europe.
-
-### Conclusion
-
-All studies included in this analysis point to the same overall
-picture:air pollution is a serious health threat. The existing state of
-scientific literature on air pollution and health is clear that air
-pollution’s impact on health is well-established and taking action in a
-polluted environment should not be delayed in order to complete
-multi-year large sample (\> 1000) epidemiological studies in an area,
-even if there has not been a prior study in that particular geography.
-That said, it is important for the field of air quality epidemiolgy to
-understand the contours of its current research landscape to most
-effectively identify directions for future research and deploy limited
-resources.
-
- 
-
-### Methodology
-
-Through a comprehensive and ongoing\* literature review, we are making
-an attempt at creating an exhaustive public listing of all the
-epidemiological studies out there (that we could find) that examine the
-relationship between PM<sub>2.5</sub> and Life Expectancy/Mortality.
-
-For each study, we record data on key defining features, such as:
-Geography, Sample Size, Study Duration, PM<sub>2.5</sub> exposure range,
-etc. Then we used
-[this](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996)
-analysis dataset to carry out a meta-analysis, results of which are
-detailed in the Results section above.
-
-We are seeking to make this analysis as current, complete and error-free
-as possible and view it as a continual work in progress. We would
-welcome the air quality community’s any comments, corrections, andor
-suggestions. Please contact **<aqli-epic@uchicago.edu>** or leave a
-comment in this GitHub repository.
-
-### Limitations (To be discussed)
-
- 
-
-### How can you (the community) help in improving this analysis?
+## How can you (the community) help in improving this analysis?
 
 -   Add to the [****analysis
     dataset****](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996)
@@ -386,8 +413,6 @@ comment in this GitHub repository.
 <hr>
 
 ### References
-
- 
 
  
 
