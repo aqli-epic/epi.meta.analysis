@@ -8,12 +8,15 @@
 
 This analysis is our best first attempt to capture all epidemiological
 research studies (\>1000 people; max sample size: 73 million), that are
-relatively long term ((\> 1 years, max study duration: 36 years) and
+relatively long term (\> 1 year(s), max study duration: 36 years) and
 measure the impact of **ambient** PM<sub>2.5</sub>, PM<sub>10</sub>,
 TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all
-cause, pre-mature)/Life Expectancy published between 1993 and present\*,
+cause, premature)/Life Expectancy published between 1993 and present\*,
 findable in available peer-reviewed literature. Hereafter, referred to
-as **AQ epi studies** for short.
+as **AQ epi studies** for short. As of now, this meta-analysis analyzes
+68 AQ epi studies. This number will grow over time (and that will be
+reflected in the blog) as this analysis evolves over time and more and
+more studies are added to it.
 
 We are seeking to make this analysis as current, complete and error-free
 as possible and view it as a continual work in progress. We would
@@ -89,7 +92,7 @@ variation in the quality of air one breathes.
     lists all of these additional studies for reference.
 
 -   In cases where the same cohort is studied by different research
-    groups at different point in time/using different methods: we have
+    groups at different points in time/using different methods: we have
     included and counted all of those studies as separate unique studies
     in the analysis below.
 
@@ -98,8 +101,11 @@ variation in the quality of air one breathes.
     v/s Urban), season (Winter v/s Summer) are excluded from this
     analysis.
 
--   All papers studying the measure the impact of pollutants on DALY’s,
-    are excluded from this analysis.
+-   Papers that include combined estimates of Household and Ambient Air
+    Pollution, but not individual estimates are excluded.
+
+-   All papers studying the impact of pollutants on DALY’s (Disability
+    Adjusted Life Years), are excluded from this analysis.
 
 ## Other important points
 
@@ -112,6 +118,17 @@ variation in the quality of air one breathes.
     wherever the data is not available (whether it is mean PM2.5 or
     PM2.5 range) we have recorded a NA. Apart from this, anywhere we
     couldn’t find data, we have recorded a NA.
+
+-   In cases, where mean PM<sub>2.5</sub> is reported for both the
+    **start year** and the **end year**(or also for sometime between a
+    start year and the end year) of the study, we have reported the
+    **end year** mean PM<sub>2.5</sub> value.
+
+-   Papers that have used a conversion factor to convert mean
+    PM<sub>10</sub> concentrations to mean PM<sub>2.5</sub>
+    concentrations are included but, there PM<sub>2.5</sub> values
+    (mean, lower limit, upper limit, standard deviation) is not
+    recorded.
 
 -   In multi-pollutant studies where different pollutants have been
     studied over different periods of time, we have chosen the specific
@@ -160,7 +177,7 @@ variation in the quality of air one breathes.
 
  
 
-### PM<sub>2.5</sub> exposure range and the Global Population Distribution
+### PM<sub>2.5</sub> concentration range and the Global Population Distribution
 
  
 
