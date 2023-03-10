@@ -18,6 +18,65 @@ library(waiter)
 # setting global options
 options(shiny.maxRequestSize = 900*1024^2)
 
+# loading the function that will plot the population pollution 2 bucket graph
+
+pop_pol_graph_2_buckets <- function(aqli_color, epi, thresh_ll, thresh_ul){
+
+  # aqli color population in ordered pm2.5 buckets
+  aqli_color_grp_pm2.5_buckets <- aqli_color %>%
+    mutate(region = ifelse(pm2020 >= thresh_ll & pm2020 <= thresh_ul, str_c(thresh_ll, "-", thresh_ul), pm2020),
+           region = ifelse(pm2020 > thresh_ul, str_c(">", thresh_ul), region)) %>%
+    group_by(region) %>%
+    summarise(tot_pop = sum(population, na.rm = TRUE)) %>%
+    ungroup() %>%
+    mutate(order_pollution_group = ifelse(region == str_c(thresh_ll, "-", thresh_ul), 1, 0),
+           order_pollution_group = ifelse(region == str_c(">", thresh_ul), 2, order_pollution_group)) %>%
+    ungroup() %>%
+    mutate(tot_pop_prop = (tot_pop/sum(tot_pop))*100)
+
+
+  # epi total number of studies in ordered pollution buckets (initially filtering out pooled studies, will add back in using a for loop)
+  epi_num_studies_grp_pm2.5_buckets <- epi %>%
+    filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+    group_by(paper_uid) %>%
+    summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
+    mutate(region = ifelse(mean_pm2.5 >= thresh_ll & mean_pm2.5 <= thresh_ul, str_c(thresh_ll, "-", thresh_ul), mean_pm2.5),
+           region = ifelse(mean_pm2.5 > 25, str_c(">", thresh_ul), region)) %>%
+    mutate(order_pollution_group = ifelse(region == str_c(thresh_ll, "-", thresh_ul), 1, 0),
+           order_pollution_group = ifelse(region == str_c(">", thresh_ul), 2, order_pollution_group)) %>%
+    group_by(region) %>%
+    summarise(tot_studies = n(), order_pollution_group = order_pollution_group[1]) %>%
+    ungroup() %>%
+    mutate(tot_studies_prop = (tot_studies/sum(tot_studies))*100)
+
+  #> bar chart version
+
+  # creating a master dataset for both population and studies data
+  pop_epi_studies_data <- aqli_color_grp_pm2.5_buckets %>%
+    left_join(epi_num_studies_grp_pm2.5_buckets, by = c("region", "order_pollution_group")) %>%
+    select(region,  order_pollution_group, tot_pop_prop, tot_studies_prop) %>%
+    pivot_longer(cols = tot_pop_prop:tot_studies_prop, names_to = "type_of_prop", values_to = "val")
+
+  # plotting the bar graph
+  pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
+    ggplot() +
+    geom_col(mapping = aes(x = fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
+    scale_y_continuous(breaks = seq(0, 100, 10)) +
+    scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
+    labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "",
+         caption = str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+    theme_hc() +
+    theme(axis.line.y = element_line(color = "black"),
+          axis.line.x = element_line(color = "black"),
+          plot.caption = element_text(size = 8, hjust = 0),
+          plot.caption.position = "plot")
+
+  return(pop_num_studies_in_pollution_buckets_graph)
+
+}
+
+
+
 # loading the .RData file that contain all required data objects
 # save(list = ls(all = TRUE), file= "all.RData")
 load("all.RData", .GlobalEnv)
@@ -30,6 +89,7 @@ ui <- shinydashboard::dashboardPage(
   shinydashboard::dashboardSidebar(
     shinydashboard::sidebarMenu(
       shinydashboard::menuItem(tabName = "blog_post_graphs", text = "Blog Post Graphs", icon = icon("chart-bar")),
+      shinydashboard::menuItem(tabName = "underlying_data", text = "Underlying Data", icon = icon("database")),
       shinydashboard::menuItem(tabName = "other_content", text = "Other Content", icon = icon("pencil"))
     )
   ),
@@ -150,10 +210,28 @@ ui <- shinydashboard::dashboardPage(
                                                     status = "info",
                                                     solidHeader = TRUE,
                                                     shinycssloaders::withSpinner(plotly::plotlyOutput("country_wise_dist_study_duration")))
-                              )
+                              ),
+                              shiny::tags$br(),
+                              # shiny::fluidRow(
+                              #   shiny::tags$hr(),
+                              #   shinydashboard::box(width = 3,
+                              #                       shiny::sliderInput("pm2.5_bucket_2_buckets_ll", "PM2.5 Range (LL)", 0, 120, value = c(0, 120))
+                              #   ),
+                              #   shinydashboard::box(width = 3,
+                              #                       shiny::sliderInput("pm2.5_bucket_2_buckets_ul", "PM2.5 Range (UL)", 0, 120, value = c(0, 120))
+                              #   ),
+                              #   shinydashboard::box(
+                              #     width = 6, status = "info", solidHeader = TRUE,
+                              #     title = "PM2.5 exposure Range and Global Population Distribution with 2 buckets",
+                              #     shinycssloaders::withSpinner(plotly::plotlyOutput("pm2.5_expo_glob_pop_graph_2_buckets"))
+                              #   )
+                              # )
 
       ),
-      shinydashboard::tabItem("other_content")
+      shinydashboard::tabItem("underlying_data",
+                              shiny::dataTableOutput("underlying_data_table")
+
+                              )
 
     )
   )
@@ -721,6 +799,17 @@ server <- function(input, output) {
     }
 
 
+  })
+
+
+# #> PM2.5 exposure and Global Population distribution with 2 buckets
+# output$pm2.5_expo_glob_pop_graph_2_buckets <- plotly::renderPlotly({
+#   return(pop_pol_graph_2_buckets(aqli_color, epi, input$pm2.5_bucket_2_buckets_ll, input$pm2.5_bucket_2_buckets_ul))
+# })
+
+#> Render the underlying data as the Data Table
+  output$underlying_data_table <- shiny::renderDataTable({
+    epi
   })
 
 }

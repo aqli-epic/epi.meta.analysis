@@ -398,13 +398,14 @@ aqli_color_country <- aqli_color %>%
   group_by(country) %>%
   mutate(pop_weights = population/sum(population, na.rm = TRUE), 
          pm2020_pop_weighted = pm2020*pop_weights) %>%
-  summarise(avg_pm2.5_2020 = sum(pm2020_pop_weighted, na.rm = TRUE))
+  summarise(avg_pm2.5_2020 = sum(pm2020_pop_weighted, na.rm = TRUE), 
+            total_pop = sum(population, na.rm = TRUE))
 
 # joining the world shape + epi joined file with the aqli color file 
 world_shp_epi_color <- world_shp_epi %>%
   left_join(aqli_color_country, by = "country") %>%
   filter(country != "Antarctica") %>%
-  select(country, num_studies, avg_pm2.5_2020, geometry)
+  select(country, num_studies, avg_pm2.5_2020, total_pop, geometry)
 
 # In the total number of studies column, replacing NAs with 0s
 world_shp_epi_color <- world_shp_epi_color %>%
@@ -420,7 +421,10 @@ geographic_dist_graph <- world_shp_epi_color %>%
   geom_sf(mapping = aes(fill = avg_pm2.5_2020), color = "white") +
  scale_fill_continuous_sequential(palette = "YlOrRd") +
   geom_sf(data = country_wise_centroids %>% filter(num_studies != 0), mapping = aes(size = num_studies), col = "grey", ) +
-    theme(legend.position = "bottom") +
+  theme_map() +
+    theme(legend.position = "none") 
+
++
   scale_size_binned() +
   scale_size(range = c(0, 8)) +
   theme_map() +
@@ -925,11 +929,147 @@ epi %>%
   theme(legend.position = "bottom")
 
 
+```
+
+```{r experimental_graphs}
+
+#> exp graph 1 - global aqli 2020 data pm2020 column distribution overlayed with vertical lines showing mean_pm2.5 values of various studies.---------------------------------------------------------
+mean_pm2.5_studies <- epi$mean_pm2.5[!is.na(epi$mean_pm2.5)] 
+
+
+# exp graph 1 v1
+exp_graph_1_v1 <- aqli_color %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = pm2020), fill = "darkred", color = "black", alpha = 0.7, size = 0.8) +
+  geom_vline(xintercept = mean_pm2.5_studies, color = "black", alpha = 0.4, linetype = "longdash", size = 0.4) + 
+  ggthemes::theme_tufte() +
+  labs(x = expression("Annual Average" ~ PM[2.5] ~ "concentrations in 2020 (in µg/m³)"), 
+       y = "count") +
+  theme(axis.line = element_line()) +
+  scale_x_continuous(breaks = seq(0, 120, 20)) +
+  scale_y_continuous(breaks = seq(0, 12000, 2000))
+
+# exp graph 1 v2
+FOO <- aqli_color %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = pm2020), fill = "darkred", color = "black", alpha = 0.7, size = 0.8) +
+  geom_vline(xintercept = mean_pm2.5_studies, color = "black", alpha = 0.4, linetype = "longdash", size = 0.4) + 
+  ggthemes::theme_tufte() +
+  labs(x = expression("Annual Average" ~ PM[2.5] ~ "concentrations in 2020 (in µg/m³)"), 
+       y = "count") +
+  theme(axis.line = element_line()) +
+  scale_x_continuous(breaks = seq(0, 120, 20)) +
+  scale_y_continuous(breaks = seq(0, 12000, 2000)) + 
+  annotate("segment", x = min(mean_pm2.5_studies, na.rm = TRUE), y = 12000, xend = max(mean_pm2.5_studies, na.rm = TRUE), yend = 12000, 
+             arrow = arrow(length = unit(0.3, "cm"), type = "closed")) + 
+  annotate("segment", x = 60, y = 12000, xend = 60, yend = 10000) + 
+  annotate("segment", x = 60, y = 10000, xend = 90, yend = 10000) +  
+  annotate("text", x = 99, y = 10000, label = str_wrap("Mean PM2.5 range of studies", 12))
+
+# exp graph 1 v3
+
+aqli_color %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = pm2020), fill = "darkred", color = "black", alpha = 0.7, size = 0.8)+
+  ggthemes::theme_tufte() +
+  labs(x = expression("Annual Average" ~ PM[2.5] ~ "concentrations in 2020 (in µg/m³)"), 
+       y = "count") +
+  theme(axis.line = element_line()) +
+  scale_x_continuous(breaks = seq(0, 120, 20)) +
+  scale_y_continuous(breaks = seq(0, 12000, 2000)) + 
+  annotate("segment", x = min(mean_pm2.5_studies, na.rm = TRUE), y = 12000, xend = max(mean_pm2.5_studies, na.rm = TRUE), yend = 12000, 
+             arrow = arrow(length = unit(0.3, "cm"), type = "closed")) + 
+  annotate("segment", x = 60, y = 12000, xend = 60, yend = 10000) + 
+  annotate("segment", x = 60, y = 10000, xend = 90, yend = 10000) +  
+  annotate("text", x = 99, y = 10000, label = str_wrap("Mean PM2.5 range of studies", 12))
+
+# exp graph 1 v4
+
+foo <- aqli_color %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = pm2020), fill = "darkred", color = "black", alpha = 0.7, size = 0.8)+
+  ggthemes::theme_tufte() +
+  labs(x = expression("Annual Average" ~ PM[2.5] ~ "concentrations in 2020 (in µg/m³)"), 
+       y = "count") +
+  theme(axis.line = element_line()) +
+  scale_x_continuous(breaks = seq(0, 120, 20)) +
+  scale_y_continuous(breaks = seq(0, 12000, 2000)) + 
+  annotate("rect", xmin = min(mean_pm2.5_studies, na.rm = TRUE), ymin = 0, xmax = max(mean_pm2.5_studies, na.rm = TRUE), ymax = 12000, alpha = 0.2) + 
+  annotate("segment", x = max(mean_pm2.5_studies, na.rm = TRUE), y = 10000, xend = 90, yend = 10000) +  
+  annotate("text", x = 99, y = 10000, label = str_wrap("Mean PM2.5 range of studies", 12))
+
+# hex version
+
+
+#> exp graph v2-------------------------------------------------------------------------
+
+#> PM2.5 exposure range and population distribution
+
+# exp graph 2 v1
+
+thresh_ll <- 0
+thresh_ul <- 25
+
+
+# aqli color population in ordered pm2.5 buckets
+aqli_color_grp_pm2.5_buckets <- aqli_color %>%
+  mutate(region = ifelse(pm2020 >= thresh_ll & pm2020 <= thresh_ul, str_c(thresh_ll, "-", thresh_ul), pm2020), 
+         region = ifelse(pm2020 > thresh_ul, str_c(">", thresh_ul), region)) %>%
+  group_by(region) %>%
+  summarise(tot_pop = sum(population, na.rm = TRUE)) %>%
+  ungroup() %>%
+    mutate(order_pollution_group = ifelse(region == str_c(thresh_ll, "-", thresh_ul), 1, 0), 
+         order_pollution_group = ifelse(region == str_c(">", thresh_ul), 2, order_pollution_group)) %>%
+  ungroup() %>%
+  mutate(tot_pop_prop = (tot_pop/sum(tot_pop))*100)
   
+  
+# epi total number of studies in ordered pollution buckets (initially filtering out pooled studies, will add back in using a for loop)
+epi_num_studies_grp_pm2.5_buckets <- epi %>%
+  filter(!is.na(mean_pm2.5), mean_pm2.5 != "NA", non_pm2.5 == 0) %>%
+  group_by(paper_uid) %>%
+  summarise(mean_pm2.5 = mean(mean_pm2.5, na.rm = TRUE)) %>%
+    mutate(region = ifelse(mean_pm2.5 >= thresh_ll & mean_pm2.5 <= thresh_ul, str_c(thresh_ll, "-", thresh_ul), mean_pm2.5), 
+         region = ifelse(mean_pm2.5 > 25, str_c(">", thresh_ul), region)) %>%
+  mutate(order_pollution_group = ifelse(region == str_c(thresh_ll, "-", thresh_ul), 1, 0), 
+         order_pollution_group = ifelse(region == str_c(">", thresh_ul), 2, order_pollution_group)) %>%
+  group_by(region) %>%
+  summarise(tot_studies = n(), order_pollution_group = order_pollution_group[1]) %>%
+  ungroup() %>%
+  mutate(tot_studies_prop = (tot_studies/sum(tot_studies))*100)
+
+#> bar chart version
+
+# creating a master dataset for both population and studies data
+pop_epi_studies_data <- aqli_color_grp_pm2.5_buckets %>%
+  left_join(epi_num_studies_grp_pm2.5_buckets, by = c("region", "order_pollution_group")) %>%
+  select(region,  order_pollution_group, tot_pop_prop, tot_studies_prop) %>%
+  pivot_longer(cols = tot_pop_prop:tot_studies_prop, names_to = "type_of_prop", values_to = "val")
+
+# plotting the bar graph
+pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
+  ggplot() +
+  geom_col(mapping = aes(x = fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
+  scale_y_continuous(breaks = seq(0, 100, 10)) +
+  scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) + 
+  labs(x = "Mean PM2.5 bucket (in µg/m³)",  y = "Percentage", fill = "", 
+       caption = str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+  theme_hc() +
+  theme(axis.line.y = element_line(color = "black"), 
+        axis.line.x = element_line(color = "black"), 
+        plot.caption = element_text(size = 8, hjust = 0), 
+        plot.caption.position = "plot")
+
+# cartogram (using objects from the geographic distribution)
+foo <- world_shp_epi_color
+foo <- foo %>% mutate(num_studies = ifelse(num_studies == 0, 0.00000001, num_studies))
+foo_sp <- as(foo, "Spatial")
+foo_sp_transform <- spTransform(foo_sp, CRS("+init=epsg:3395"))
+foo_sp_transform_cont <- cartogram_cont(foo_sp_transform, "num_studies", itermax = 2)
+tm_shape(foo_sp_transform_cont) + tm_polygons("total_pop", style = "jenks") +
+   tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
 
 
 
 
 ```
-
-
