@@ -61,6 +61,8 @@ epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
 # AQLI color file
 aqli_color <- read_csv("./data-raw/pm2.5_distribution/color.csv")
+aqli.color <- read_csv("C:/Users/Aarsh/Desktop/aqli-epic/epi.meta.analysis/data-raw/pm2.5_distribution/color.csv")
+
 
 # getting a country continent file
 country_continent <- read_csv("./data-raw/pm2.5_distribution/country_continent.csv")
