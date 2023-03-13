@@ -1094,10 +1094,59 @@ pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
         plot.caption = element_text(size = 8, hjust = 0), 
         plot.caption.position = "plot")
 
-# cartogram (using objects from the geographic distribution)
-foo <- world_shp_epi_color
-foo <- foo %>% mutate(num_studies = ifelse(num_studies == 0, 0.00000001, num_studies))
+# cartogram (using objects from the geographic distribution chunk)
+foo <- world_shp_epi_color %>%
+  st_as_sf()
+
+# country level population
+aqli_color_country_summary_population <- aqli_color %>%
+  group_by(country) %>%
+  mutate(pop_weights = population/sum(population, na.rm = TRUE), 
+         pm2020_pop_weighted = pm2020*pop_weights) %>%
+  summarise(avg_pm2.5_2020 = sum(pm2020_pop_weighted, na.rm = TRUE), 
+            tot_pop = sum(population, na.rm = TRUE)) %>%
+  select(country, tot_pop)
+
+foo <- foo %>%
+  left_join(aqli_color_country_summary_population, by = "country")
+
+
+for(i in 1:nrow(foo)) {
+  if(is.na(foo$num_studies[i])){
+    foo$num_studies[i] <- (sample(1:20, 1))*10000
+  } else {
+    foo$num_studies[i] <- foo$num_studies[i]*10000
+  }
+}
+
+foo <- foo %>% mutate(num_studies = ifelse(is.na(num_studies), 0, num_studies))
+
+foo <-  foo %>% 
+  mutate(num_studies_norm = num_studies/sum(num_studies, na.rm = TRUE), 
+         num_studies_log = log10(num_studies + 1.00001))
+
+foo <- foo %>%
+  select(-geometry, geometry) %>%
+  st_as_sf()
+
+foo %>% 
+  ggplot() + 
+  geom_sf()
+
+foo_transform <- st_transform(foo, 3857)
+
+foo_transform_cont <- cartogram_cont(foo_transform,
+                 weight = "num_studies_norm", itermax = 5)
+
+
+  ggplot(foo_transform_cont) +
+  geom_sf(mapping = aes(fill = num_studies))
+
+
 foo_sp <- as(foo, "Spatial")
+
+
+
 foo_sp_transform <- spTransform(foo_sp, CRS("+init=epsg:3395"))
 foo_sp_transform_cont <- cartogram_cont(foo_sp_transform, "num_studies", itermax = 2)
 tm_shape(foo_sp_transform_cont) + tm_polygons("total_pop", style = "jenks") +
