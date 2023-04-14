@@ -62,7 +62,8 @@ min_study_duration_in_years <- 1
 #> Filtering the epi database (minimum cohort size: >1000, minimum study duration: > 1 year): commented for now.
 epi <- epi %>%
   mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
-  filter(cohort_size >= min_sample_size, study_duration >= min_study_duration_in_years)
+  filter(cohort_size >= min_sample_size, study_duration >= min_study_duration_in_years, !is.na(cohort_uid)) %>%
+  distinct(cohort_uid, .keep_all = TRUE)
 
 # creating this temp dataset for the  continent panel dataset
 epi_tmp <- epi %>%
@@ -141,20 +142,23 @@ pop_pol_graph_2_buckets <- function(aqli_color, epi, thresh_ll, thresh_ul, pm2.5
     tidyr::pivot_longer(cols = tot_pop_prop:tot_studies_prop, names_to = "type_of_prop", values_to = "val") %>%
     dplyr::mutate(type_of_prop = ifelse(type_of_prop == "tot_pop_prop", "Percent Population in PM₂.₅ bucket", "Percent Studies in PM₂.₅ bucket"))
 
-  pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
-    ggplot2::ggplot() +
-    ggplot2::geom_col(mapping = aes(x = fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
-    ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
-    ggplot2::scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
-    ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", fill = "",
-         caption = stringr::str_wrap("*This graph 'only' takes into account the PM₂.₅ specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
-  ggthemes::theme_hc() +
-    ggplot2::theme(axis.line.y = element_line(color = "black"),
-          axis.line.x = element_line(color = "black"),
-          plot.caption = element_text(size = 8, hjust = 0),
-          plot.caption.position = "plot") +
-    viridis::scale_fill_viridis(discrete = TRUE)
+pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_col(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 100, 10), limits = c(0, 100)) +
+  ggplot2::scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
+  ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", fill = "",
+       caption = stringr::str_wrap("*This graph 'only' takes into account the PM₂.₅ specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+ # ggplot2::geom_text(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, label = paste0(round(val, 1), "%")), position = ggplot2::position_dodge2(width = 1, preserve = "single"), vjust = -0.5, hjust = -0.2, size = 3) +
+ggthemes::theme_hc() +
+  ggplot2::theme(axis.line.y = element_line(color = "black"),
+        axis.line.x = element_line(color = "black"),
+        plot.caption = element_text(size = 8, hjust = 0),
+        plot.caption.position = "plot") +
+  viridis::scale_fill_viridis(discrete = TRUE)
 
-  return(pop_num_studies_in_pollution_buckets_graph)
+return(pop_num_studies_in_pollution_buckets_graph)
+
+
 
 }
