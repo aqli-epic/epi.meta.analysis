@@ -7,14 +7,17 @@
 <!-- badges: end -->
 
 This analysis is our ongoing attempt to capture all epidemiological
-research studies (\>1000 people; max sample size: 73 million), that are
-relatively long term (\> 1 year(s), max study duration: 36 years) and
-measure the impact of **ambient** PM<sub>2.5</sub>, PM<sub>10</sub>,
-TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all
-cause, premature)/Life Expectancy published between 1993 and present\*,
+research studies (\>1000 people; max sample size: 1380 million), that
+are relatively long term (\> 1 year(s), max study duration: 36 years),
+with unique cohorts (by unique we mean that even if a given cohort is
+studied by different groups over different years/different sample size,
+it’ll be counted as separate cohorts, instead of 1) and measure the
+impact of **ambient** PM<sub>2.5</sub>, PM<sub>10</sub>, TSP, Ultra Fine
+Particulate Matter on Mortality (cause-specific, all cause,
+premature)/Life Expectancy published between 1993 and present\*,
 findable in available peer-reviewed literature. Hereafter, we refer to
 these studies as **“AQ epi studies”** for short. As of now, this
-meta-analysis analyzes 69 AQ epi studies. This analysis will be
+meta-analysis analyzes 84 AQ epi studies. This analysis will be
 continually updated to incorporate new AQ epi studies.
 
 We are seeking to make this analysis as current, complete and error-free
@@ -32,31 +35,28 @@ dataset****](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQ
 
 ## Major Takeaways
 
-- \[\] percent of all AQ epi studies (\[\] studies) included in this
+- 53.57 percent of all AQ epi studies (45 studies) included in this
   analysis included populations in either the US or Canada or both.
 
 - Of the total number of times a given continent’s population has been
   included in any given AQ epi study, North America dominates the rest
-  of the continents and has been included \[\] percent of times (all due
-  to studies in the US or Canada). Closely following North America,
+  of the continents and has been included 53.57 percent of times (all
+  due to studies in the US or Canada). Closely following North America,
   populations in Asia and Europe have been included in AQ epi studies
-  \[\] and \[\] percent of times respectively. Africa, South America,
+  28.57 and 17.86 percent of times respectively. Africa, South America,
   Oceania have seen 0 long term (\>= 1 year), large (\>=1000 people in
   the sample) AQ epi study.
 
 - There have been no large (\>= 1 year) or long (\>=1000 people in the
   sample) PM epi studies that were performed in Africa, South America,
-  Oceania, with a combined population of \[\] , \[\] percent of the
-  Earth’s total human population.
+  Oceania, with a combined population of 1.84 billion people , 23.72
+  percent of the Earth’s total human population.
 
-- Post \[\], there has been a noticeable increase in the overall volume
-  of AQ epi studies published.
-
-- In total, \[\] “really” long term studies (\> 25 years) have been
-  performed. That is, \[\] percent of the total number of studies.
+- In total, 7 “really” long term studies (\> 25 years) have been
+  performed. That is, 8.33 percent of the total number of studies.
 
 - All of the following continents have seen at least 1 really long term
-  study: \[\].
+  study: North America, Europe.
 
 ## Purpose
 
@@ -89,7 +89,7 @@ pushing forward and shaping national-level ambient air quality
 standards.
 
 The burden of air pollution across the world is also not uniform. While
-98.2 percent of the world population is out of compliance with the
+98.3 percent of the world population is out of compliance with the
 latest WHO annual PM<sub>2.5</sub> guideline of 5 µg/m³, there is huge
 variation in the quality of air one breathes.
 
@@ -105,14 +105,14 @@ variation in the quality of air one breathes.
 
  
 
-- In total 69 AQ epi studies were included in the final [analysis
+- In total 84 AQ epi studies were included in the final [analysis
   dataset](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996).
-  Of these, 59 were PM<sub>2.5</sub> specific. Others (10 studies) are
+  Of these, 73 were PM<sub>2.5</sub> specific. Others (11 studies) are
   multi-pollutant studies.
 
-- 12.7 percent of the world population, or 980.7 million people, live in
+- 12.7 percent of the world population, or 983.9 million people, live in
   areas where the annual average PM<sub>2.5</sub> pollution is greater
-  than 50 µg/m³. But, only 6.8 percent (4 PM<sub>2.5</sub> specific
+  than 50 µg/m³. But, only 9.6 percent (7 PM<sub>2.5</sub> specific
   studies) of the total PM<sub>2.5</sub> studies, have been performed in
   these highly polluted parts of the world. These highly polluted areas
   are areas where the average PM<sub>2.5</sub> pollution is at least 10
@@ -125,11 +125,11 @@ variation in the quality of air one breathes.
   polluted parts of the world, 0 PM<sub>2.5</sub> AQ epi studies have
   been performed .
 
-- Most of the PM<sub>2.5</sub> AQ epi studies (74.6 percent of the total
-  number of PM<sub>2.5</sub> studies, or 44 studies) performed so far,
+- Most of the PM<sub>2.5</sub> AQ epi studies (67.1 percent of the total
+  number of PM<sub>2.5</sub> studies, or 49 studies) performed so far,
   are concentrated in areas where the average PM<sub>2.5</sub>
   concentration is in the 0-25 µg/m³ range. People living in these areas
-  (58.2 percent of the world population) are breathing air that is much
+  (58.3 percent of the world population) are breathing air that is much
   less polluted relative to the people living in the most polluted parts
   of the world (as seen above). But, even in the 0-25 µg/m³ bucket,
   anyone living above 5 µg/m³, is out of compliance with the WHO
@@ -143,20 +143,20 @@ variation in the quality of air one breathes.
 
 <img src="man/figures/README-geographic_dist_studies_calcs-1.png" width="100%" />
 
-- 59.4 percent of all AQ epi studies (41 studies) included in this
+- 53.6 percent of all AQ epi studies (45 studies) included in this
   analysis included populations in either the US or Canada or both.
 
 - USA, Canada and Europe (or some combination of them) were focus
-  countries in 78.3 percent of all AQ epi studies (54 studies). Other
+  countries in 71.4 percent of all AQ epi studies (60 studies). Other
   countrie(s) that have been included in an AQ epi study: China, Japan,
-  Hong Kong, Taiwan.
+  Hong Kong, Taiwan, India, Indonesia, South Korea.
 
 - Of the total number of times a given continent’s population has been
   included in any given AQ epi study, North America dominates the rest
-  of the continents and has been included 59.4 percent of times (all due
+  of the continents and has been included 53.6 percent of times (all due
   to studies in the US or Canada). Closely following North America,
   populations in Asia and Europe have been included in AQ epi studies
-  21.7 and 18.8 percent of times respectively. Africa, South America,
+  28.6 and 17.9 percent of times respectively. Africa, South America,
   Oceania have seen 0 long term (\> 1 year), large (\>1000 people in the
   sample) AQ epi study.
 
@@ -185,7 +185,7 @@ variation in the quality of air one breathes.
 <img src="man/figures/README-dist_duration_study_calcs-1.png" width="100%" />
 
 - In total, 7 “really” long term studies (\> 25 years) have been
-  performed. That is, 10.1 percent of the total number of studies.
+  performed. That is, 8.3 percent of the total number of studies.
 
 - All of the following continents have seen at least 1 really long term
   study: North America, Europe.

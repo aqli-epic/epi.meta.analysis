@@ -1,0 +1,14 @@
+name: aqli-epic-epi-meta-analysis
+title: aqli-epic-epi-meta-analysis
+username:
+account: aarsh
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8840243
+bundleId: 7084204
+url: https://aarsh.shinyapps.io/aqli-epic-epi-meta-analysis/
+when: 1681384571.4225
+lastSyncTime: 1681384571.42252
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: app_helper.R

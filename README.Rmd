@@ -37,7 +37,7 @@ library(colorspace)
 library(shiny)
 library(shinydashboard)
 library(DT)
-
+library(treemapify)
 
 ```
 
@@ -51,9 +51,31 @@ who_pm2.5_guideline <- 5
 # global operations
 `%notin%` <- Negate(`%in%`)
 
-# epi studies analysis raw sheet
-epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
+# epi studies analysis raw sheet (tmp epi_raw dataset for testing)-----------------------
+# epi_raw <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn") 
+# 
+# # coercing columns to right data types
+# epi_raw$cohort_size <- as.numeric(epi_raw$cohort_size)
+# epi_raw$study_start_year<- as.numeric(epi_raw$study_start_year)
+# epi_raw$study_end_year <- as.numeric(epi_raw$study_end_year)
+# epi_raw$pm2.5_exposure_ll <- as.numeric(epi_raw$pm2.5_exposure_ll)
+# epi_raw$pm2.5_exposure_ul <- as.numeric(epi_raw$pm2.5_exposure_ul)
+# epi_raw$mean_pm2.5 <- as.numeric(epi_raw$mean_pm2.5)
+# epi_raw$sd_pm2.5 <- as.numeric(epi_raw$sd_pm2.5)
+# epi_raw$cohort_age_ll <- as.numeric(epi_raw$cohort_age_ll)
+# epi_raw$cohort_age_ul <- as.numeric(epi_raw$cohort_age_ul)
+# 
+# # adding a study duration column
+# epi_raw <- epi_raw %>%
+#   mutate(study_duration = (study_end_year - study_start_year) + 1) 
+# 
+# # seeing how many studies we are excluding and can potentially include
+# foo <- epi_raw %>% filter((is.na(study_duration) | is.na(cohort_size))) %>% pull(paper_uid) %>% unique()
 
+#----------------------------------------------------------------------------------------
+
+# epi studies analysis raw sheet (main analysis begins)
+epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
 
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
@@ -67,7 +89,17 @@ epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
 epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
 # AQLI color file
-aqli_color <- read_csv("./data-raw/pm2.5_distribution/gadm2_aqli2021_vit.csv")
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/[finalizedApr2023]gadm2_aqli2021_vit.csv")
+
+# bringing column names in line with how README expects it (above file contains column names in format as ViT expects it)
+aqli_color <- aqli_color %>%
+  dplyr::rename_with(~str_replace(.x, "who", "llpp_who_"), dplyr::contains("who")) %>%
+  dplyr::rename_with(~str_replace(.x, "nat", "llpp_nat_"), dplyr::contains("nat")) %>%
+  dplyr::rename(country = name0) %>%
+  dplyr::mutate(whostandard = who_pm2.5_guideline) %>%
+  dplyr::select(objectid_gadm2:population, whostandard, everything())
+
+
 aqli_color <- aqli_color %>%
   dplyr::mutate(objectid_color = objectid_gadm2)
 
@@ -77,7 +109,7 @@ country_continent <- read_csv("./data-raw/pm2.5_distribution/country_continent.c
 # adding a continent column to the color file
 aqli_color <- aqli_color %>%
   left_join(country_continent, by = "country") %>%
-  select(objectid_color:iso_alpha3, continent, everything())
+  select(objectid_color, continent, everything())
 
 #> setting report parameters
 min_sample_size <- 1000
@@ -85,8 +117,12 @@ min_study_duration_in_years <- 1
 
 #> Filtering the epi database (minimum cohort size: >1000, minimum study duration: > 1 year): commented for now.
 epi <- epi %>%
-  mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
-  filter(cohort_size >= min_sample_size, study_duration >= min_study_duration_in_years)
+  mutate(study_duration = (study_end_year - study_start_year) + 1) 
+
+epi <- epi %>%
+   mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
+  filter(cohort_size >= min_sample_size, study_duration >= min_study_duration_in_years, !is.na(cohort_uid)) %>%
+  distinct(cohort_uid, .keep_all = TRUE)
 
 # creating this temp dataset for the  continent panel dataset
 epi_tmp <- epi %>%
@@ -165,24 +201,27 @@ pop_pol_graph_2_buckets <- function(aqli_color, epi, thresh_ll, thresh_ul, pm2.5
     tidyr::pivot_longer(cols = tot_pop_prop:tot_studies_prop, names_to = "type_of_prop", values_to = "val") %>%
     dplyr::mutate(type_of_prop = ifelse(type_of_prop == "tot_pop_prop", "Percent Population in PM₂.₅ bucket", "Percent Studies in PM₂.₅ bucket"))
 
-  pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
-    ggplot2::ggplot() +
-    ggplot2::geom_col(mapping = aes(x = fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
-    ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
-    ggplot2::scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
-    ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", fill = "",
-         caption = stringr::str_wrap("*This graph 'only' takes into account the PM₂.₅ specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
-  ggthemes::theme_hc() +
-    ggplot2::theme(axis.line.y = element_line(color = "black"),
-          axis.line.x = element_line(color = "black"),
-          plot.caption = element_text(size = 8, hjust = 0),
-          plot.caption.position = "plot") +
-    viridis::scale_fill_viridis(discrete = TRUE)
+pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_col(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
+  ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
+  ggplot2::scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
+  ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", title = "Percent Population (and % studies) in different PM2.5  buckets", fill = "",
+       caption = stringr::str_wrap("*This graph 'only' takes into account the PM₂.₅ specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+ # ggplot2::geom_text(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, label = paste0(round(val, 1), "%")), position = ggplot2::position_dodge2(width = 1, preserve = "single"), vjust = -0.5, hjust = -0.2, size = 3) +
+ggthemes::theme_hc() +
+  ggplot2::theme(axis.line.y = element_line(color = "black"),
+        axis.line.x = element_line(color = "black"),
+        plot.caption = element_text(size = 8, hjust = 0),
+        plot.caption.position = "plot", 
+        plot.title = element_text(size = 9, hjust = 0.5)) +
+  viridis::scale_fill_viridis(discrete = TRUE) 
 
-  return(pop_num_studies_in_pollution_buckets_graph)
+return(pop_num_studies_in_pollution_buckets_graph)
+
+
 
 }
-
 ```
 
 
@@ -191,7 +230,7 @@ pop_pol_graph_2_buckets <- function(aqli_color, epi, thresh_ll, thresh_ul, pm2.5
 <!-- badges: start -->
 <!-- badges: end -->
 
-This analysis is our ongoing attempt to capture all epidemiological research studies (>`r min_sample_size` people; max sample size: `r round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)` million), that are relatively long term (> `r min_study_duration_in_years` year(s), max study duration: `r max(epi$study_duration, na.rm =TRUE)` years) and measure the impact of **ambient** PM~2.5~, PM~10~, TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all cause, premature)/Life Expectancy published between `r min(epi$publishing_year)` and present*, findable in available peer-reviewed literature. Hereafter, we refer to these studies as **"AQ epi studies"** for short. As of now, this meta-analysis analyzes `r epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()` AQ epi studies. This analysis will be continually updated to incorporate new AQ epi studies. 
+This analysis is our ongoing attempt to capture all epidemiological research studies (>`r min_sample_size` people; max sample size: `r round(max(epi$cohort_size, na.rm = TRUE)/1000000, 1)` million), that are relatively long term (> `r min_study_duration_in_years` year(s), max study duration: `r max(epi$study_duration, na.rm =TRUE)` years), with unique cohorts (by unique we mean that even if a given cohort is studied by different groups over different years/different sample size, it'll be counted as separate cohorts, instead of 1) and measure the impact of **ambient** PM~2.5~, PM~10~, TSP, Ultra Fine Particulate Matter on Mortality (cause-specific, all cause, premature)/Life Expectancy published between `r min(epi$publishing_year)` and present*, findable in available peer-reviewed literature. Hereafter, we refer to these studies as **"AQ epi studies"** for short. As of now, this meta-analysis analyzes `r epi %>% distinct(paper_uid, .keep_all = TRUE) %>% nrow()` AQ epi studies. This analysis will be continually updated to incorporate new AQ epi studies. 
 
 We are seeking to make this analysis as current, complete and error-free as possible and view it as a continual work in progress. We would appreciate the air quality community’s comments, corrections, and suggestions. Please contact **aqli-epic@uchicago.edu** or leave a comment in [this](https://github.com/aqli-epic/epi.meta.analysis) GitHub repository/directly leave comments in the [**__analysis dataset__**](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQt_QGixgJ9jEzFyQw/edit#gid=2082201996) (more on this below). 
 
@@ -201,17 +240,15 @@ We are seeking to make this analysis as current, complete and error-free as poss
 
 ## Major Takeaways
 
-* [] percent of all AQ epi studies ([] studies) included in this analysis included populations in either the US or Canada or both.
+* 53.57 percent of all AQ epi studies (45 studies) included in this analysis included populations in either the US or Canada or both.
 
-* Of the total number of times a given continent’s population has been included in any given AQ epi study, North America dominates the rest of the continents and has been included [] percent of times (all due to studies in the US or Canada). Closely following North America, populations in Asia and Europe have been included in AQ epi studies [] and [] percent of times respectively. Africa, South America, Oceania have seen 0 long term (>= 1 year), large (>=1000 people in the sample) AQ epi study.
+* Of the total number of times a given continent’s population has been included in any given AQ epi study, North America dominates the rest of the continents and has been included 53.57 percent of times (all due to studies in the US or Canada). Closely following North America, populations in Asia and Europe have been included in AQ epi studies 28.57 and 17.86 percent of times respectively. Africa, South America, Oceania have seen 0 long term (>= 1 year), large (>=1000 people in the sample) AQ epi study.
 
-* There have been no large (>= 1 year) or long (>=1000 people in the sample) PM epi studies that were performed in Africa, South America, Oceania, with a combined population of [] , [] percent of the Earth’s total human population.
+* There have been no large (>= 1 year) or long (>=1000 people in the sample) PM epi studies that were performed in Africa, South America, Oceania, with a combined population of 1.84 billion people , 23.72 percent of the Earth’s total human population.
 
-* Post [], there has been a noticeable increase in the overall volume of AQ epi studies published.
+* In total, 7 “really” long term studies (> 25 years) have been performed. That is, 8.33 percent of the total number of studies.
 
-* In total, [] “really” long term studies (> 25 years) have been performed. That is, [] percent of the total number of studies.
-
-* All of the following continents have seen at least 1 really long term study: [].
+* All of the following continents have seen at least 1 really long term study: North America, Europe.
 
 
 ## Purpose
@@ -537,10 +574,10 @@ geographic_dist_graph <- world_shp_epi_color %>%
        ggplot2::ggtitle(expression("Country wise distribution of epi studies and Annual Average" ~PM[2.5] ~ "pollution (in µg/m³)")) +
         ggplot2::theme(plot.caption = ggplot2::element_text(hjust = 0, size = 7),
                        legend.position = "bottom",
-                       legend.background = ggplot2::element_rect(color = "black"),
                        legend.justification = c(0.5, 3),
-                       plot.title = ggplot2::element_text(hjust = 0.5, size = 16), 
-                       legend.text = element_text(size = 5))
+                       plot.title = ggplot2::element_text(hjust = 0.5, size = 11), 
+                       legend.text = element_text(size = 5), 
+                       legend.title = element_text(size = 6))
 
 #> Other calculations for this block of code
 
@@ -741,9 +778,10 @@ continent_wise_study_duration_graph <- continent_wise_study_duration_graph_summa
         ggplot2::theme(axis.line.y = ggplot2::element_line(color = "black"),
                        axis.line.x = ggplot2::element_line(color = "black"),
                        plot.caption = ggplot2::element_text(hjust = 0, size = 7),
-                       plot.title = element_text(size = 14, hjust = 0.5),
+                       plot.title = element_text(size = 10, hjust = 0.5),
                        plot.subtitle = element_text(size = 8, hjust = 0.5),
                        strip.background = element_rect(fill = "floralwhite"),
+                       strip.text = element_text(size = 4.5),
                        legend.background = element_rect(color = "black"), 
                        legend.text = element_text(size = 7)) +
         ggplot2::scale_fill_manual(values = c("North America (589.2 million people)" = "#FFBA00", "Europe (740.8 million people)" = "#FF9600",
@@ -1072,7 +1110,7 @@ epi %>%
 
 ```{r experimental_graphs_1, eval=FALSE, include=FALSE}
 
-# Experimental Graphs
+# Experimental graphs (not to be put on the GitHub blog)
 
 #### Country wise Distribution of Study Duration (Density and Histogram Plots)
 
@@ -1101,6 +1139,31 @@ epi %>%
 
 
 ```{r experimental_graphs_2, eval=FALSE, include=FALSE}
+
+# Experimental Graphs (others not to be put on the GitHub blog)
+
+#### Country wise Distribution of Study Duration (Density and Histogram Plots)
+
+#> Different countries in a pooled study should be counted separately. As of now this is PM2.5 specific, but can be generalized in the future.
+
+
+#> (9) Country wise Study duration density plot
+epi %>%
+  filter(study_duration != "NA", !is.na(study_duration)) %>%
+  ggplot() +
+  geom_density(mapping = aes(x = study_duration, fill = country, alpha = 0.5)) +
+  theme_tufte()
+
+#> Country Wise Study Duration histogram
+
+epi %>%
+  filter(study_duration != "NA", !is.na(study_duration)) %>%
+  ggplot() +
+  geom_histogram(mapping = aes(x = study_duration, fill = country, alpha = 0.5), position = "identity", alpha = 0.5, color = "white", binwidth = 1) +
+  theme_tufte() +
+  facet_wrap(~country, nrow = 5) +
+  theme(legend.position = "bottom")
+
 
 # Experimental graphs
 
@@ -1290,6 +1353,367 @@ tm_shape(foo_sp_transform_cont) + tm_polygons("total_pop", style = "jenks") +
    tm_layout(frame = FALSE, legend.position = c("left", "bottom"))
 
 
+#> population pollution figure (version 2)-------------------------------
+# pollution buckets on the x 
+
+
+# adding pollution buckets
+aqli_color_with_pol_buckets <- aqli_color %>%
+  mutate(pol_buckets = ifelse(((pm2021 >= 0) & (pm2021 <= 5)), "0 - 5", NA),
+         pol_buckets = ifelse(((pm2021 > 5) & (pm2021 <= 10)), ">5 - 10", pol_buckets),
+         pol_buckets = ifelse(((pm2021 > 10) & (pm2021 <= 20)), ">10 - 20", pol_buckets),
+         pol_buckets = ifelse(((pm2021 > 20) & (pm2021 <= 40)), ">20 - 40", pol_buckets),
+         pol_buckets = ifelse(((pm2021 > 40) & (pm2021 <= 80)), ">40 - 80", pol_buckets),
+         pol_buckets = ifelse(((pm2021 > 80)), ">80", pol_buckets)) %>%
+  mutate(pol_bucket_order = ifelse(pol_buckets == "0 - 5", 1, NA),
+         pol_bucket_order = ifelse(pol_buckets == ">5 - 10", 2, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">10 - 20", 3, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">20 - 40", 4, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">40 - 80", 5, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">80", 6, pol_bucket_order))
+
+# converting the 2 newly created columns to type factor
+aqli_color_with_pol_buckets$pol_buckets <- as.factor(aqli_color_with_pol_buckets$pol_buckets)
+aqli_color_with_pol_buckets$pol_bucket_order <- as.factor(aqli_color_with_pol_buckets$pol_bucket_order)
+
+
+foo <- aqli_color_with_pol_buckets %>%
+  group_by(pol_buckets) %>%
+  summarise(tot_pop = sum(population, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(pol_bucket_order = ifelse(pol_buckets == "0 - 5", 1, NA),
+         pol_bucket_order = ifelse(pol_buckets == ">5 - 10", 2, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">10 - 20", 3, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">20 - 40", 4, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">40 - 80", 5, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">80", 6, pol_bucket_order)) %>%
+  filter(!is.na(pol_buckets)) %>%
+  mutate(tot_pop_millions = round(tot_pop/1000000, 1)) %>%
+  ggplot() +
+  geom_col(mapping = aes(x = forcats::fct_reorder(pol_buckets, pol_bucket_order), y = tot_pop_millions, fill = forcats::fct_reorder(pol_buckets, pol_bucket_order)), width = 0.2) +
+  ggthemes::theme_hc() +
+  labs(x =  expression("Annual Average" ~ PM[2.5] ~ ("in µg/m³")), y = "Total Population (in millions)",
+       title = "", fill = expression("Annual Average" ~ PM[2.5] ~ "(in µg/m³)")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 12),
+        axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.background = element_rect(color = "black")) +
+  viridis::scale_fill_viridis(option = "magma", direction = -1, discrete = TRUE) +
+  scale_y_continuous(breaks = seq(0, 3000, 500))
+
+
+# doing a similar thing with the epi dataset to get the total number of studies in different pollution buckets.
+epi_with_pol_buckets <- epi %>%
+  mutate(pol_buckets = ifelse(((mean_pm2.5 >= 0) & (mean_pm2.5 <= 5)), "0 - 5", NA),
+         pol_buckets = ifelse(((mean_pm2.5 > 5) & (mean_pm2.5 <= 10)), ">5 - 10", pol_buckets),
+         pol_buckets = ifelse(((mean_pm2.5 > 10) & (mean_pm2.5 <= 20)), ">10 - 20", pol_buckets),
+         pol_buckets = ifelse(((mean_pm2.5 > 20) & (mean_pm2.5 <= 40)), ">20 - 40", pol_buckets),
+         pol_buckets = ifelse(((mean_pm2.5 > 40) & (mean_pm2.5 <= 80)), ">40 - 80", pol_buckets),
+         pol_buckets = ifelse(((mean_pm2.5 > 80)), ">80", pol_buckets)) %>%
+  mutate(pol_bucket_order = ifelse(pol_buckets == "0 - 5", 1, NA),
+         pol_bucket_order = ifelse(pol_buckets == ">5 - 10", 2, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">10 - 20", 3, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">20 - 40", 4, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">40 - 80", 5, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">80", 6, pol_bucket_order))
+
+
+
+epi_with_pol_buckets$pol_buckets <- as.factor(epi_with_pol_buckets$pol_buckets)
+epi_with_pol_buckets$pol_bucket_order <- as.factor(epi_with_pol_buckets$pol_bucket_order)
+
+foo1 <- epi_with_pol_buckets %>%
+  group_by(pol_buckets) %>%
+  summarise(total_studies = n()) %>%
+  ungroup() %>%
+  mutate(pol_bucket_order = ifelse(pol_buckets == "0 - 5", 1, NA),
+         pol_bucket_order = ifelse(pol_buckets == ">5 - 10", 2, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">10 - 20", 3, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">20 - 40", 4, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">40 - 80", 5, pol_bucket_order),
+         pol_bucket_order = ifelse(pol_buckets == ">80", 6, pol_bucket_order)) %>%
+  filter(!is.na(pol_buckets)) %>%
+  add_row(pol_bucket_order = 1, pol_buckets = "0 - 5", total_studies = 0) %>%
+  add_row(pol_bucket_order = 6, pol_buckets = ">80", total_studies = 0) %>%
+  ggplot() +
+  geom_col(mapping = aes(x = forcats::fct_reorder(pol_buckets, pol_bucket_order), y = total_studies, fill = forcats::fct_reorder(pol_buckets, pol_bucket_order)), width = 0.2) +
+  ggthemes::theme_hc() +
+  labs(x =  "", y = "Total number of epi studies",
+       title = "", fill = expression("Annual Average" ~ PM[2.5] ~ "(in µg/m³)")) +
+  theme(plot.title = element_text(hjust = 0.5, size = 12),
+        axis.title.x = element_text(size = 9),
+        axis.title.y = element_text(size = 9),
+        legend.title = element_text(size = 8),
+        legend.background = element_rect(color = "black")) +
+  viridis::scale_fill_viridis(option = "magma", direction = -1, discrete = TRUE) +
+  theme(legend.position = "none")
+
+
+
+gridExtra::grid.arrange(foo1, foo)
+
+#> Template for adding a red line that goes over all panels in the continent wise panel plot-----------
+
+# convert the contnent wise plot into a grob
+# plt_cont_grob <- ggplotGrob(plt_cont)
+# 
+# # get the panel grobs
+# panels <- getGrob(plt_cont_grob, "panel", grep = TRUE)
+# 
+# # add a horizontal line at y = 0 on top of each panel
+# for (i in 1:6) {
+#   vp <- viewport(layout.pos.row = i, layout.pos.col = 1)
+#   pushViewport(vp)
+#   grid.lines(x = c(unit(0.1, "npc"), unit(1, "npc")),
+#              y = unit(0.82, "npc"),
+#              gp = gpar(col = "darkred", lwd = 1),
+#              arrow = arrow(length = unit(0.15, "in"), type = "closed", ends = "last",
+#                            angle = 30))
+#   popViewport()
+# }
+
+
+#-------------------------------------
+
+#> Countries withing continent wise plot of studies in form of a bar graphs (with countries not labelled)-------
+
+# generate plot dataset
+plot_data <- epi %>%
+  group_by(continent, country) %>%
+  summarise(count_studies = n(), .groups = "keep")
+
+
+# plot the countries within continent plot
+plot_data %>%
+  ggplot() +
+  geom_col(mapping = aes(x = continent, y = count_studies, fill = continent), position = position_dodge2(preserve = "single"))
+
+
+#> Treemaps of the number of studies that have happened in each continent by country (used plot_data object from above)-----------------
+
+plt1 <- ggplot(plot_data %>% filter(continent == "Asia"), aes(area = count_studies, fill = country, label = count_studies)) +
+  geom_treemap() +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  geom_treemap_text(color = "white") +
+  labs(title = "Asia (24 times was part of a epi study)", fill = "Country") +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(color = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "white"))
+
+plt2 <- ggplot(plot_data %>% filter(continent == "Africa"), aes(area = count_studies, fill = country, label = count_studies)) +
+  geom_treemap() +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  geom_treemap_text(color = "white") +
+  labs(title = "Africa (0)", fill = "Country") +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(color = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "white"))
+
+plt3 <- ggplot(plot_data %>% filter(continent == "South America"), aes(area = count_studies, fill = country, label = count_studies)) +
+  geom_treemap() +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  geom_treemap_text(color = "white") +
+  labs(title = "South America (0)", fill = "Country") +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(color = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "white"))
+
+plt4 <- ggplot(plot_data %>% filter(continent == "Europe"), aes(area = count_studies, fill = country, label = count_studies)) +
+  geom_treemap() +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  geom_treemap_text(color = "white") +
+  labs(title = "Europe (15)", fill = "Country") +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(color = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "white"))
+
+plt5 <- ggplot(plot_data %>% filter(continent == "North America"), aes(area = count_studies, fill = country, label = count_studies)) +
+  geom_treemap() +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  geom_treemap_text(color = "white") +
+  labs(title = "North America (49)", fill = "Country") +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(color = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "white"))
+
+
+plt6 <- ggplot(plot_data %>% filter(continent == "Oceania"), aes(area = count_studies, fill = country, label = count_studies)) +
+  geom_treemap() +
+  viridis::scale_fill_viridis(discrete = TRUE) +
+  geom_treemap_text(color = "white") +
+  labs(title = "Oceania (0)", fill = "Country") +
+  theme(legend.position = "bottom",
+        legend.background = element_rect(color = "black"),
+        plot.title = element_text(hjust = 0.5),
+        plot.background = element_rect(fill = "white"))
+
+plt_final <- gridExtra::grid.arrange(plt1, plt2, plt3, plt4, plt5, plt6, nrow = 1, top = "Number of times a country has been included in an epi study (Continent Wise)")
+
+plt_final + ggtitle("foo")
+
+
+#> Population pollution figure (v3): trying a continuous but binned scale and adding Ken's figure----------
+
+# population v/s pollution 
+foo <- aqli_color %>%
+  group_by(pm2021) %>%
+  summarise(count_pm2021 = sum(population, na.rm = TRUE),
+            count_pm2021_millions = round(count_pm2021/1000000, 1)) %>%
+  ggplot() +
+ geom_hline(yintercept = c(300, 600, 900, 1200), linetype = "dashed", color = "lavenderblush2") +
+  geom_histogram(mapping = aes(x = pm2021, weight = count_pm2021_millions), fill = "#8FA1AD", color = "white", alpha = 0.7, width = 0.5) + 
+  ggthemes::theme_hc() +
+  labs(x = expression("Annual Average" ~ PM[2.5] ~ "(in µg/m³)"),
+       y = "Population (in millions)") +
+  scale_y_continuous(breaks = seq(0, 1500, 300)) +
+  scale_x_continuous(breaks = seq(0, 140, 15), limits = c(0, 140)) +
+  theme(axis.line = element_line(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_text(size = 11)) 
+
+foo_v2 <- aqli_color %>%
+  group_by(pm2021) %>%
+  summarise(count_pm2021 = sum(population, na.rm = TRUE),
+            count_pm2021_millions = round(count_pm2021/1000000, 1)) %>%
+  ggplot() +
+ geom_hline(yintercept = c(500, 1000, 1500, 2000, 2500), linetype = "dashed", color = "lavenderblush2") +
+  geom_col(mapping = aes(x = pm2021, y = count_pm2021_millions), fill = "#8FA1AD", alpha = 0.7, width = 0.9) + 
+  ggthemes::theme_hc() +
+  labs(x = expression("Annual Average" ~ PM[2.5] ~ "(in µg/m³)"),
+       y = "Population (in millions)") +
+  scale_x_binned(breaks = seq(0, 140, 15), limits = c(0, 140)) +
+  scale_y_continuous(breaks = seq(0, 2500, 500)) +
+  theme(axis.line = element_line(),
+        panel.grid.major.y = element_blank(),
+           axis.text.y = element_text(size = 13),
+        axis.text.x = element_text(size = 13),
+        axis.title = element_text(size = 15)) 
+
+
+# pollution v/s number of studies
+foo1 <- epi %>%
+  group_by(mean_pm2.5) %>%
+  summarise(count_mean_pm2.5 = n()) %>%
+  ggplot() +
+     geom_hline(yintercept = c(5, 10, 15, 20), linetype = "dashed", color = "lavenderblush2") +
+  geom_histogram(mapping = aes(x = mean_pm2.5, weight = count_mean_pm2.5), fill = "#343434", color = "white", alpha = 0.7, width = 0.5) +  ggthemes::theme_hc() +
+  labs(x = "",
+       y = "Number of epi papers") +
+  scale_y_continuous(breaks = seq(0, 30, 5)) +
+  scale_x_continuous(breaks = seq(0, 140, 15), limits = c(0, 140)) +
+  theme(axis.line = element_line(),
+        panel.grid.major.y = element_blank(),
+        axis.title = element_text(size = 11))
+
+
+foo1_v2 <-  epi %>%
+  group_by(mean_pm2.5) %>%
+  summarise(count_mean_pm2.5 = n()) %>%
+  ggplot() +
+     geom_hline(yintercept = c(10, 20, 30, 40), linetype = "dashed", color = "lavenderblush2") +
+  geom_col(mapping = aes(x = mean_pm2.5, y = count_mean_pm2.5), fill = "#343434", alpha = 0.7, width = 0.9) +  ggthemes::theme_hc() +
+  labs(x = "",
+       y = "Number of epi papers") +
+  scale_y_continuous(breaks = seq(0, 40, 10)) +
+  scale_x_binned(breaks = seq(0, 140, 15), limits = c(0, 140)) +
+  theme(axis.line = element_line(),
+        panel.grid.major.y = element_blank(), 
+           axis.text.y = element_text(size = 13),
+        axis.text.x = element_text(size = 13),
+        axis.title = element_text(size = 15),)
+
+
+gridExtra::grid.arrange(foo1, foo)
+
+## Ken's figure
+
+# get 4 datasets corresponding to gemm/ier/aqli/meta and for each keep concentrations till 120 micrograms per cubic meter and keep only relevant columns. and so some basic cleaning
+gemm <- haven::read_dta("./data-raw/pm2.5_distribution/gemm.dta")
+gemm <- gemm %>%
+  filter(pm_gemm <= 120) %>%
+  select(pm_gemm, gemm_lyl) %>%
+  mutate(method = "GEMM") %>%
+  rename(pm_val = pm_gemm, 
+         lyl_val = gemm_lyl)
+
+# stupid adjustment
+gemm[1:3, 2] <- c(-0.49, -0.392, -0.294)
+
+ier2019 <- haven::read_dta("./data-raw/pm2.5_distribution/ier_2019.dta")
+ier2019 <- ier2019 %>% 
+  filter(pm_ier_2019 <= 120) %>%
+  select(pm_ier_2019, ier_2019_lyl) %>%
+  mutate(method = "IER-2019") %>%
+  rename(pm_val = pm_ier_2019, 
+         lyl_val = ier_2019_lyl)
+
+meta <- haven::read_dta("./data-raw/pm2.5_distribution/meta.dta")
+meta <- meta %>% 
+  filter(pm_meta <= 120) %>%
+  select(pm_meta, meta_lyl) %>%
+    mutate(method = "META") %>%
+  rename(pm_val = pm_meta, 
+         lyl_val = meta_lyl)
+
+aqli <- tibble(pm_val = 0:120, lyl_val = (pm_val - who_pm2.5_guideline)*0.098, method = "AQLI")
+#   mutate(lyl_val = ifelse(lyl_val < 0, 0, lyl_val))
+
+## calculating empirical versions of above methods
+
+# Approximating a derivative function of gemm
+gemm_empirical <- splinefun(x  = gemm$pm_val, 
+                                    y = gemm$lyl_val)
+
+# Approximating a derivative function of gemm
+aqli_empirical <- splinefun(x  = aqli$pm_val, 
+                                    y = aqli$lyl_val)
+
+# meta empirical
+meta_empirical <- splinefun(x  = meta$pm_val, 
+                                    y = meta$lyl_val)
+
+# ier 2019 empirical
+
+ier2019_empirical <- splinefun(x  = ier2019$pm_val, 
+                                    y = ier2019$lyl_val)
+
+## plot the 4 curves (empirical version)
+
+foo3 <- ggplot(data = tibble(x = 1:120), mapping = aes(x = x)) +
+      #geom_hline(yintercept = seq(0, 0.175, 0.05), linetype = "dashed", color = "lavenderblush2") +
+  geom_function(fun = gemm_empirical, size = 1.2, args = list(deriv = 1), mapping = aes(color = "#5B96AD")) + 
+  geom_function(fun = aqli_empirical, size = 1.2, args = list(deriv = 1), mapping = aes(color = "#8F3931")) +
+   geom_function(fun = meta_empirical, size = 1.2, args = list(deriv = 1), mapping = aes(color = "#91AB5A")) +
+  geom_function(fun = ier2019_empirical, size = 1.2, args = list(deriv = 1), mapping = aes(color = "#767676")) +
+  scale_y_continuous(breaks = seq(0, 0.2, 0.05), limits = c(0, .2)) +
+  scale_x_continuous(breaks = seq(0, 140, 15), limits = c(0, 140)) + 
+  labs(x = "", y = "Marginal Life Expectancy Lost", color = "", 
+       title = str_wrap("PM2.5 exposure in comparison with population and number of epi papers and alternative approaches to measure PM2.5 Life Expectancy relationship.", width = 90)) + 
+  scale_color_identity(breaks = c("#8F3931", "#91AB5A", "#5B96AD", "#767676"),
+                       labels = c("AQLI", "META", "GEMM", "IER-2019"),
+                       guide = "legend") +
+  ggthemes::theme_hc() %+replace%
+  theme(legend.position = c(0.8, 0.9), 
+        legend.direction = "horizontal",
+        axis.line.x = element_line(), 
+        axis.line.y = element_line(),
+        plot.title = element_text(hjust =  0.5, size = 16, color = "black"), 
+        axis.text.y = element_text(size = 13),
+        axis.text.x = element_text(size = 13),
+        axis.title = element_text(size = 15),
+        legend.text = element_text(size = 10),
+        plot.caption = element_text(face = "italic", hjust = 0), 
+        legend.title = element_text(hjust = 0.5), 
+        panel.grid.major.y = element_blank(), 
+        legend.key.size = unit(0.5, "cm")) 
+
+gridExtra::grid.arrange(foo3,foo1_v2, foo_v2, heights = c(1, 1, 1))
 
 
 ```
