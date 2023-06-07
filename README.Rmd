@@ -51,31 +51,9 @@ who_pm2.5_guideline <- 5
 # global operations
 `%notin%` <- Negate(`%in%`)
 
-# epi studies analysis raw sheet (tmp epi_raw dataset for testing)-----------------------
-# epi_raw <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn") 
-# 
-# # coercing columns to right data types
-# epi_raw$cohort_size <- as.numeric(epi_raw$cohort_size)
-# epi_raw$study_start_year<- as.numeric(epi_raw$study_start_year)
-# epi_raw$study_end_year <- as.numeric(epi_raw$study_end_year)
-# epi_raw$pm2.5_exposure_ll <- as.numeric(epi_raw$pm2.5_exposure_ll)
-# epi_raw$pm2.5_exposure_ul <- as.numeric(epi_raw$pm2.5_exposure_ul)
-# epi_raw$mean_pm2.5 <- as.numeric(epi_raw$mean_pm2.5)
-# epi_raw$sd_pm2.5 <- as.numeric(epi_raw$sd_pm2.5)
-# epi_raw$cohort_age_ll <- as.numeric(epi_raw$cohort_age_ll)
-# epi_raw$cohort_age_ul <- as.numeric(epi_raw$cohort_age_ul)
-# 
-# # adding a study duration column
-# epi_raw <- epi_raw %>%
-#   mutate(study_duration = (study_end_year - study_start_year) + 1) 
-# 
-# # seeing how many studies we are excluding and can potentially include
-# foo <- epi_raw %>% filter((is.na(study_duration) | is.na(cohort_size))) %>% pull(paper_uid) %>% unique()
-
-#----------------------------------------------------------------------------------------
-
-# epi studies analysis raw sheet (main analysis begins)
+# epi studies analysis raw sheet
 epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
+
 
 #> change default columns types
 epi$cohort_size <- as.numeric(epi$cohort_size)
@@ -88,17 +66,17 @@ epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
 epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
 epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
-# AQLI color file
-aqli_color <- read_csv("./data-raw/pm2.5_distribution/[finalizedApr2023]gadm2_aqli2021_vit.csv")
+# AQLI color file and gadm0 file
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/[june2023]gadm2_aqli_2021_post_waterbody_adj_finalized_internal.csv")
+gadm0_aqli_2021 <- read_csv("./data-raw/pm2.5_distribution/[june2023]gadm0_aqli_2021_post_waterbody_adj_finalized_internal.csv")
 
-# bringing column names in line with how README expects it (above file contains column names in format as ViT expects it)
-aqli_color <- aqli_color %>%
-  dplyr::rename_with(~str_replace(.x, "who", "llpp_who_"), dplyr::contains("who")) %>%
-  dplyr::rename_with(~str_replace(.x, "nat", "llpp_nat_"), dplyr::contains("nat")) %>%
-  dplyr::rename(country = name0) %>%
-  dplyr::mutate(whostandard = who_pm2.5_guideline) %>%
-  dplyr::select(objectid_gadm2:population, whostandard, everything())
 
+# aqli_color <- aqli_color %>%
+#   dplyr::rename_with(~str_replace(.x, "who", "llpp_who_"), dplyr::contains("who")) %>%
+#   dplyr::rename_with(~str_replace(.x, "nat", "llpp_nat_"), dplyr::contains("nat")) %>%
+#   dplyr::rename(country = name0) %>%
+#   dplyr::mutate(whostandard = who_pm2.5_guideline) %>%
+#   dplyr::select(objectid_gadm2:population, whostandard, everything())
 
 aqli_color <- aqli_color %>%
   dplyr::mutate(objectid_color = objectid_gadm2)
@@ -109,7 +87,31 @@ country_continent <- read_csv("./data-raw/pm2.5_distribution/country_continent.c
 # adding a continent column to the color file
 aqli_color <- aqli_color %>%
   left_join(country_continent, by = "country") %>%
-  select(objectid_color, continent, everything())
+  select(objectid_color, continent, country, everything())
+
+gadm0_aqli_2021 <- gadm0_aqli_2021 %>%
+  left_join(country_continent, by = "country")
+
+#> Filling in missing continents-----------------------------------------------
+
+# countries for which continent is NA: for these fill in the continent manually
+countries_with_missing_continent <- gadm0_aqli_2021 %>% filter(is.na(continent)) %>% pull(country) %>% unique()
+
+# continent fill in for missing coutries
+continents_for_missing_countries <- c("Africa", "Europe", "North America", "Asia", "Asia",
+                                      "Oceania", "Africa", "Africa", "Africa", "Asia")
+
+# [CAUTION: perform a sanity check on the above 2 vectors and how they map countries to continents before proceeding]
+#creating a data frame using the above 2 vectors as columns
+missing_continents_df <- tibble(country = countries_with_missing_continent,
+                                continent = continents_for_missing_countries)
+
+
+# adding in the missing continent information in the gadmx_aqli_2021 datasets
+aqli_color <- aqli_color %>%
+  left_join(missing_continents_df, by = "country") %>%
+  mutate(continent = ifelse(is.na(continent.x), continent.y, continent.x))
+
 
 #> setting report parameters
 min_sample_size <- 1000
@@ -117,10 +119,7 @@ min_study_duration_in_years <- 1
 
 #> Filtering the epi database (minimum cohort size: >1000, minimum study duration: > 1 year): commented for now.
 epi <- epi %>%
-  mutate(study_duration = (study_end_year - study_start_year) + 1) 
-
-epi <- epi %>%
-   mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
+  mutate(study_duration = (study_end_year - study_start_year) + 1) %>%
   filter(cohort_size >= min_sample_size, study_duration >= min_study_duration_in_years, !is.na(cohort_uid)) %>%
   distinct(cohort_uid, .keep_all = TRUE)
 
@@ -203,25 +202,33 @@ pop_pol_graph_2_buckets <- function(aqli_color, epi, thresh_ll, thresh_ul, pm2.5
 
 pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
   ggplot2::ggplot() +
-  ggplot2::geom_col(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
+  ggplot2::geom_col(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.3) +
   ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
   ggplot2::scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
-  ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", title = "Percent Population (and % studies) in different PM2.5  buckets", fill = "",
-       caption = stringr::str_wrap("*This graph 'only' takes into account the PM₂.₅ specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+  ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", fill = "",
+                title = expression("Percentage of Global population in different" ~ PM[2.5] ~ "buckets"),
+       caption = stringr::str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
  # ggplot2::geom_text(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, label = paste0(round(val, 1), "%")), position = ggplot2::position_dodge2(width = 1, preserve = "single"), vjust = -0.5, hjust = -0.2, size = 3) +
-ggthemes::theme_hc() +
+ggthemes::theme_tufte() +
   ggplot2::theme(axis.line.y = element_line(color = "black"),
         axis.line.x = element_line(color = "black"),
-        plot.caption = element_text(size = 8, hjust = 0),
-        plot.caption.position = "plot", 
-        plot.title = element_text(size = 9, hjust = 0.5)) +
-  viridis::scale_fill_viridis(discrete = TRUE) 
+        plot.caption = element_text(size = 8, hjust = 0, margin = margin(t = 0.7, unit = "cm")),
+        plot.title = element_text(size = 16, margin = margin(b = 1, unit = "cm"), hjust = 0.5),
+        plot.caption.position = "plot",
+        axis.title.y = element_text(margin = margin(r = 0.5, unit = "cm"), size = 14),
+        axis.title.x = element_text(margin = margin(t = 0.5, b = 0.5, unit = "cm"), size  = 14),
+        axis.text = element_text(size = 12),
+        legend.box.background = element_rect(color = "black"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 12)) +
+  viridis::scale_fill_viridis(discrete = TRUE)
 
 return(pop_num_studies_in_pollution_buckets_graph)
 
 
 
 }
+
 ```
 
 
@@ -244,7 +251,7 @@ We are seeking to make this analysis as current, complete and error-free as poss
 
 * Of the total number of times a given continent’s population has been included in any given AQ epi study, North America dominates the rest of the continents and has been included 53.57 percent of times (all due to studies in the US or Canada). Closely following North America, populations in Asia and Europe have been included in AQ epi studies 28.57 and 17.86 percent of times respectively. Africa, South America, Oceania have seen 0 long term (>= 1 year), large (>=1000 people in the sample) AQ epi study.
 
-* There have been no large (>= 1 year) or long (>=1000 people in the sample) PM epi studies that were performed in Africa, South America, Oceania, with a combined population of 1.84 billion people , 23.72 percent of the Earth’s total human population.
+* There have been no large (>= 1 year) or long (>=1000 people in the sample) PM epi studies that were performed in Africa, South America, Oceania, with a combined population of 1.84 billion people , 23.8 percent of the Earth’s total human population.
 
 * In total, 7 “really” long term studies (> 25 years) have been performed. That is, 8.33 percent of the total number of studies.
 
@@ -1715,5 +1722,109 @@ foo3 <- ggplot(data = tibble(x = 1:120), mapping = aes(x = x)) +
 
 gridExtra::grid.arrange(foo3,foo1_v2, foo_v2, heights = c(1, 1, 1))
 
+# Some stats for inputting China's positive story in the epi piece----------------------
+
+# cumulative sum of all epi studies in China over the years
+cum_sum_studies_chronological <- epi %>% 
+  filter(country == "China") %>% 
+  arrange(publishing_year) %>%
+  count(country, publishing_year) %>% 
+  pull(n) %>% 
+  cumsum() %>%
+  as_tibble() 
+
+# naming the column for cumulative studies
+colnames(cum_sum_studies_chronological) <- "cumulative_sum_studies"
+
+# adding the cumulative study column to the summary
+china_studies_year_summary <- cbind(epi %>% filter(country == "China") %>% arrange(publishing_year) %>% count(country, publishing_year), cum_sum_studies_chronological)
+
+# adding pre-2010 (up till 1998) studies (total = 0) to the above tibble
+china_studies_pre2010 <- tibble(country = "China", publishing_year = 1998:2009, n = 0, cumulative_sum_studies = 0)
+
+china_studies_year_summary <- china_studies_year_summary %>%
+  bind_rows(china_studies_pre2010)
+
+foo <- china_studies_year_summary %>% 
+  pivot_longer(n:cumulative_sum_studies, names_to = "sum_type", values_to = "value") %>%
+  mutate(sum_type = ifelse(sum_type == "n", "Number of studies", "Cumulative sum of studies")) %>%
+  ggplot() +
+  geom_line(mapping = aes(x = publishing_year, y = value, color = sum_type), lwd = 1) +
+  scale_x_continuous(breaks = c(seq(1998, 2020, 2), 2021, 2023), limits = c(1998, 2023)) +
+  scale_y_continuous(breaks = seq(0, 20, 2)) +
+  labs(x = "Publishing Year", y = "Studies Count", 
+       title = "Epi air pollution studies published in China, 1998 to 2023", 
+       color = "", 
+       caption = "* Sources: (a) Does the Squeaky Wheel Get More Grease? The Direct and Indirect Effects of Citizen Participation on Environmental Governance in China, Buntaine et al. (b) AQLI epi meta analysis.") +
+  ggthemes::theme_tufte() +
+  theme(plot.title = element_text(size = 22, hjust = 0.5, margin = margin(b = 0.8, unit = "cm")),
+        plot.subtitle = element_text(size = 13, hjust = 0.5, margin = margin(b = 0.5, unit = "cm")),
+        axis.title.x = element_text(size = 15, margin = margin(t = 0.7, b = 1, unit = "cm")), 
+        axis.title.y = element_text(size = 15, margin = margin(r = 0.7, unit = "cm")), 
+        axis.ticks.y = element_blank(), 
+        axis.text = element_text(size = 14), 
+        legend.position = "bottom", 
+        legend.box.background = element_rect(color = "black"),
+        legend.text = element_text(size = 15),
+        plot.caption = element_text(size = 9.5, hjust = 0, face = "italic", margin = margin(t = 1, b = 2, unit = "cm"))) + 
+   annotate("segment", x = 2013, xend = 2013, y = 0, yend = 20, linetype = "dashed") +
+   annotate("segment", x = 2014, xend = 2014, y = 0, yend = 20, linetype = "dashed") +
+   annotate("segment", x = 2017, xend = 2017, y = 0, yend = 20, linetype = "dashed") +
+    annotate("segment", x = 2017, xend = 2017, y = 0, yend = 20, linetype = "dashed") +
+  annotate("point", x = 2023, y = 16, label = "2023", size = 3) +
+  annotate("point", x = 2023, y = 1, label = "2023", size = 3, color = "yellow") +
+  viridis::scale_color_viridis(discrete = TRUE)
+# annotate("text", x = 2022, y = 45, label = "Satellite data not available") +
+#   annotate("rect", xmin = 2021, xmax = 2023, ymin = 60, ymax = 60)
+  
+
+# China's pollution over time 1998 to 2021
+foo1 <- aqli_color %>%
+  filter(country == "China") %>% 
+  group_by(country) %>%
+  mutate(pop_weights = population/sum(population, na.rm = TRUE)) %>%
+   dplyr::mutate(across(dplyr::starts_with("pm"), ~(.x*pop_weights), .names = "{col}_pop_weighted")) %>%
+    dplyr::summarise(across(dplyr::contains("pop_weighted"), ~(round(sum(.x, na.rm = TRUE), 2)), .names = "avg_{col}"),
+                     total_population = sum(population, na.rm = TRUE), objectid_color = objectid_color[1], whostandard = whostandard[1], .groups = "keep") %>%
+  dplyr::rename_with(~str_replace_all(.x, "(_pop_weighted)|(avg_)", ""), dplyr::contains("_pop_weighted")) %>%
+  pivot_longer(pm1998:pm2021, names_to = "year", values_to = "pm2.5_value") %>%
+  mutate(year = as.numeric(str_remove(year, "pm"))) %>%
+  select(country, year, pm2.5_value) %>%
+   ggplot2::ggplot() +
+      ggplot2::geom_line(mapping = ggplot2::aes(x = year, y = pm2.5_value), lwd = 1.1,
+                color = "darkred") +
+  geom_hline(mapping = aes(yintercept = 35), linetype = "dashed") +
+      ggplot2::scale_x_continuous(breaks = c(seq(1998, 2020, 2), 2021, 2023), limits = c(1998, 2023)) +
+      scale_y_continuous(breaks = seq(0, 60, 10), limits = c(0, 60)) +
+      ggthemes::theme_tufte() +
+   theme(plot.title = element_text(size = 22, hjust = 0.5, margin = margin(b = 2.5, unit = "cm")),
+        plot.subtitle = element_text(size = 13, hjust = 0.5, margin = margin(b = 0.5, unit = "cm")),
+        axis.title.x = element_text(size = 15, margin = margin(t = 0.7, b = 0.5, unit = "cm")), 
+        axis.title.y = element_text(size = 15, margin = margin(r = 0.7, unit = "cm")), 
+        axis.ticks.y = element_blank(), 
+        axis.text = element_text(size = 14), 
+        legend.position = "bottom", 
+        legend.text = element_text(size = 15),
+        legend.box.background = element_rect(color = "black"),
+        plot.caption = element_text(size = 9.5, hjust = 0, face = "italic", margin = margin(t = 0.8, b = 1.5, unit = "cm"))) +
+      ggplot2::labs(x = "Years",
+           y = "Annual Average PM2.5 concentration (in µg/m³)", 
+           title = expression(PM[2.5] ~ "pollution in China, 1998 to 2021")) +
+  annotate("text", x = 2018, y = 58, label = "War on pollution begins", size = 5) +
+   annotate("text", x = 2023.5, y = 15, label = "2023", size = 3) +
+   annotate("text", x = 2027, y = 27, label = "", size = 3) +
+   annotate("text", x = 2009.2, y = 20, label = str_wrap("Prefectural EPAs publicize CEMS data", width = 20), size = 5) +
+  annotate("segment", x = 2011, xend = 2013, y = 18, yend = 18) +
+   annotate("segment", x = 2014, xend = 2016, y = 58, yend = 58) +
+   annotate("segment", x = 2014, xend = 2014, y = 0, yend = 58, linetype = "dashed") +
+   annotate("segment", x = 2013, xend = 2013, y = 0, yend = 18, linetype = "dashed") +
+   annotate("text", x = 2021, y = 45, label = str_wrap("All prefectural cities operating official Weibo and WeChat accounts", width = 30), size = 5) +
+   annotate("segment", x = 2017, xend = 2017, y = 0, yend = 45, linetype = "dashed") +
+     annotate("text", x = 2006, y = 37, label = expression("National" ~ PM[2.5] ~ "standard: 35 µg/m³"), size = 4) +
+   annotate("segment", x = 2017, xend = 2018.5, y = 45, yend = 45) 
+  
+
+plt <- gridExtra::grid.arrange(foo1, foo)
+  
 
 ```

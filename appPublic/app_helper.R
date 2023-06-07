@@ -28,7 +28,7 @@ who_pm2.5_guideline <- 5
 `%notin%` <- Negate(`%in%`)
 
 # epi studies analysis raw sheet
-epi <- readxl::read_xlsx("./../data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
+epi <- readxl::read_xlsx("./data-raw/pm2.5_distribution/AQLI_Epidemiology Literature Research.xlsx", sheet = "AnalysisDatasetPM2.5MortalityAn")
 
 
 #> change default columns types
@@ -42,26 +42,52 @@ epi$sd_pm2.5 <- as.numeric(epi$sd_pm2.5)
 epi$cohort_age_ll <- as.numeric(epi$cohort_age_ll)
 epi$cohort_age_ul <- as.numeric(epi$cohort_age_ul)
 
-# AQLI color file
-aqli_color <- read_csv("./../data-raw/pm2.5_distribution/[finalizedApr2023]gadm2_aqli2021_vit.csv")
+# AQLI color file and gadm0 file
+aqli_color <- read_csv("./data-raw/pm2.5_distribution/[june2023]gadm2_aqli_2021_post_waterbody_adj_finalized_internal.csv")
+gadm0_aqli_2021 <- read_csv("./data-raw/pm2.5_distribution/[june2023]gadm0_aqli_2021_post_waterbody_adj_finalized_internal.csv")
 
-aqli_color <- aqli_color %>%
-  dplyr::rename_with(~str_replace(.x, "who", "llpp_who_"), dplyr::contains("who")) %>%
-  dplyr::rename_with(~str_replace(.x, "nat", "llpp_nat_"), dplyr::contains("nat")) %>%
-  dplyr::rename(country = name0) %>%
-  dplyr::mutate(whostandard = who_pm2.5_guideline) %>%
-  dplyr::select(objectid_gadm2:population, whostandard, everything())
+
+# aqli_color <- aqli_color %>%
+#   dplyr::rename_with(~str_replace(.x, "who", "llpp_who_"), dplyr::contains("who")) %>%
+#   dplyr::rename_with(~str_replace(.x, "nat", "llpp_nat_"), dplyr::contains("nat")) %>%
+#   dplyr::rename(country = name0) %>%
+#   dplyr::mutate(whostandard = who_pm2.5_guideline) %>%
+#   dplyr::select(objectid_gadm2:population, whostandard, everything())
 
 aqli_color <- aqli_color %>%
   dplyr::mutate(objectid_color = objectid_gadm2)
 
 # getting a country continent file
-country_continent <- read_csv("./../data-raw/pm2.5_distribution/country_continent.csv")
+country_continent <- read_csv("./data-raw/pm2.5_distribution/country_continent.csv")
 
 # adding a continent column to the color file
 aqli_color <- aqli_color %>%
   left_join(country_continent, by = "country") %>%
   select(objectid_color, continent, country, everything())
+
+gadm0_aqli_2021 <- gadm0_aqli_2021 %>%
+  left_join(country_continent, by = "country")
+
+#> Filling in missing continents-----------------------------------------------
+
+# countries for which continent is NA: for these fill in the continent manually
+countries_with_missing_continent <- gadm0_aqli_2021 %>% filter(is.na(continent)) %>% pull(country) %>% unique()
+
+# continent fill in for missing coutries
+continents_for_missing_countries <- c("Africa", "Europe", "North America", "Asia", "Asia",
+                                      "Oceania", "Africa", "Africa", "Africa", "Asia")
+
+# [CAUTION: perform a sanity check on the above 2 vectors and how they map countries to continents before proceeding]
+#creating a data frame using the above 2 vectors as columns
+missing_continents_df <- tibble(country = countries_with_missing_continent,
+                                continent = continents_for_missing_countries)
+
+
+# adding in the missing continent information in the gadmx_aqli_2021 datasets
+aqli_color <- aqli_color %>%
+  left_join(missing_continents_df, by = "country") %>%
+  mutate(continent = ifelse(is.na(continent.x), continent.y, continent.x))
+
 
 #> setting report parameters
 min_sample_size <- 1000
@@ -152,17 +178,25 @@ pop_pol_graph_2_buckets <- function(aqli_color, epi, thresh_ll, thresh_ul, pm2.5
 
 pop_num_studies_in_pollution_buckets_graph <- pop_epi_studies_data %>%
   ggplot2::ggplot() +
-  ggplot2::geom_col(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.4) +
+  ggplot2::geom_col(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, fill = type_of_prop), position = position_dodge(), width = 0.3) +
   ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
   ggplot2::scale_fill_manual(values = c("tot_pop_prop" = "grey", "tot_studies_prop" = "cornflowerblue"), labels = c("Proportion of World Population in Bucket", "Proportion of Studies Completed in Bucket")) +
   ggplot2::labs(x = expression("Mean" ~ PM[2.5] ~ "bucket (in µg/m³)"),  y = "Percentage", fill = "",
-       caption = stringr::str_wrap("*This graph 'only' takes into account the PM₂.₅ specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
+                title = expression("Percentage of Global population in different" ~ PM[2.5] ~ "buckets"),
+       caption = stringr::str_wrap("*This graph 'only' takes into account the PM2.5 specific studies. For multi-country (pooled) studies, it averages the mean PM2.5 values, across all countries."), width = 10) +
  # ggplot2::geom_text(mapping = aes(x = forcats::fct_reorder(region, order_pollution_group), y = val, label = paste0(round(val, 1), "%")), position = ggplot2::position_dodge2(width = 1, preserve = "single"), vjust = -0.5, hjust = -0.2, size = 3) +
-ggthemes::theme_hc() +
+ggthemes::theme_tufte() +
   ggplot2::theme(axis.line.y = element_line(color = "black"),
         axis.line.x = element_line(color = "black"),
-        plot.caption = element_text(size = 8, hjust = 0),
-        plot.caption.position = "plot") +
+        plot.caption = element_text(size = 8, hjust = 0, margin = margin(t = 0.7, unit = "cm")),
+        plot.title = element_text(size = 16, margin = margin(b = 1, unit = "cm"), hjust = 0.5),
+        plot.caption.position = "plot",
+        axis.title.y = element_text(margin = margin(r = 0.5, unit = "cm"), size = 14),
+        axis.title.x = element_text(margin = margin(t = 0.5, b = 0.5, unit = "cm"), size  = 14),
+        axis.text = element_text(size = 12),
+        legend.box.background = element_rect(color = "black"),
+        legend.position = "bottom",
+        legend.text = element_text(size = 12)) +
   viridis::scale_fill_viridis(discrete = TRUE)
 
 return(pop_num_studies_in_pollution_buckets_graph)

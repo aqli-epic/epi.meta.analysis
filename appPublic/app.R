@@ -1,7 +1,7 @@
 ## shiny app script for epi.meta.analysis--------------------------------------
 
 # load app.R helper file
-# source("app_helper.R")
+# source("./appPublic/app_helper.R")
 
 # libraries
 library(shiny)
@@ -20,7 +20,7 @@ library(colorspace)
 options(shiny.maxRequestSize = 900*1024^2)
 
 # loading the .RData file that contain all required data objects
-# save(list = ls(all = TRUE), file= "all.RData")
+# save(list = ls(all = TRUE), file= "./appPublic/all.RData")
 load("all.RData", .GlobalEnv)
 
 

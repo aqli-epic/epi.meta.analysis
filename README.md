@@ -49,7 +49,7 @@ dataset****](https://docs.google.com/spreadsheets/d/1AljEJhNPLWX_8xRbT_HJuERBpbQ
 
 - There have been no large (\>= 1 year) or long (\>=1000 people in the
   sample) PM epi studies that were performed in Africa, South America,
-  Oceania, with a combined population of 1.84 billion people , 23.72
+  Oceania, with a combined population of 1.84 billion people , 23.8
   percent of the Earth’s total human population.
 
 - In total, 7 “really” long term studies (\> 25 years) have been
